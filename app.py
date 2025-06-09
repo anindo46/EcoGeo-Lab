@@ -77,15 +77,16 @@ with st.sidebar:
     <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
     """, unsafe_allow_html=True)
 
-# Welcome + Module Card Combo
+# Welcome Section
 st.markdown("""
 <div class='module-card'>
     <h2 style='margin-bottom:0.4rem;'>Welcome to <span style='color:#f9f9f9;'>EcoGeo Lab</span></h2>
     <p style='font-size:13px;'>An all-in-one toolkit for Geoscience, Botany, Soil, Coastal, AI, and 3D Visualization.</p>
-    <p style='font-size:13px;'>Please select your tool module below:</p>
+</div>
 """, unsafe_allow_html=True)
 
-module = st.selectbox("", [
+# Routing
+module = st.selectbox("📦 Select Your Tool Module", [
     "🏠 Home",
     "🪨 Geology Tools",
     "🧱 Soil Tools",
@@ -95,8 +96,6 @@ module = st.selectbox("", [
     "🤖 AI Predictions",
     "🦮 3D Visualization"
 ], index=0)
-
-st.markdown("</div>", unsafe_allow_html=True)
 
 # Instruction at the end
 st.markdown("""
@@ -119,7 +118,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Routing
+# Module execution
 if module == "🏠 Home":
     pass
 elif module == "🪨 Geology Tools":
