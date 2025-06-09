@@ -43,28 +43,19 @@ st.markdown("""
     }
     .module-card {
         background: linear-gradient(120deg, #4e54c8, #8f94fb);
-        padding: 0.6rem 1rem;
-        border-radius: 10px;
-        box-shadow: 0 5px 14px rgba(0,0,0,0.1);
-        margin: 1rem auto 1rem;
+        padding: 1rem;
+        border-radius: 14px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        margin: 1.5rem auto;
         width: 90%;
-        max-width: 580px;
+        max-width: 650px;
         color: white;
         text-align: center;
     }
     .module-card h3 {
-        margin-bottom: 0.3rem;
-        font-size: 16px;
-        font-weight: 500;
-    }
-    .stSelectbox label {
-        font-size: 14px;
-        color: #333;
-    }
-    div[data-baseweb="select"] > div {
-        border-radius: 10px;
-        padding: 8px;
-        font-size: 14px;
+        margin-bottom: 0.8rem;
+        font-size: 17px;
+        font-weight: 600;
     }
     .block-container {
         padding-top: 2rem;
@@ -86,28 +77,15 @@ with st.sidebar:
     <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
     """, unsafe_allow_html=True)
 
-# Welcome Section
-col1, col2 = st.columns([1, 2])
-with col1:
-    lottie = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_w98qte06.json")
-    if lottie:
-        st_lottie(lottie, speed=1, loop=True, height=250)
-    else:
-        st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
-with col2:
-    st.markdown("""
-    <h2 style='color:#2c3e50; margin-bottom: 0;'>Welcome to <span style='color:#4B8BBE;'>EcoGeo Lab</span></h2>
-    <p style='font-size:15px;'>An interactive web toolkit for Geoscience, Soil, Botany, Coastal, AI, and 3D Visualization.</p>
-    <ul style='font-size:14px;'>
-        <li>📂 Upload or manually enter your data</li>
-        <li>📊 Instantly visualize results with professional charts</li>
-        <li>📥 Export outcomes as PNG, CSV, or PDF</li>
-    </ul>
-    """, unsafe_allow_html=True)
+# Welcome + Module Card Combo
+st.markdown("""
+<div class='module-card'>
+    <h2 style='margin-bottom:0.4rem;'>Welcome to <span style='color:#f9f9f9;'>EcoGeo Lab</span></h2>
+    <p style='font-size:13px;'>An all-in-one toolkit for Geoscience, Botany, Soil, Coastal, AI, and 3D Visualization.</p>
+    <p style='font-size:13px;'>Please select your tool module below:</p>
+""", unsafe_allow_html=True)
 
-# Module Selector Below Welcome
-st.markdown("<div class='module-card'><h3>📦 Please select your tool module below</h3>", unsafe_allow_html=True)
-module = st.selectbox("Select Module", [
+module = st.selectbox("", [
     "🏠 Home",
     "🪨 Geology Tools",
     "🧱 Soil Tools",
@@ -117,6 +95,7 @@ module = st.selectbox("Select Module", [
     "🤖 AI Predictions",
     "🦮 3D Visualization"
 ], index=0)
+
 st.markdown("</div>", unsafe_allow_html=True)
 
 # Instruction at the end
