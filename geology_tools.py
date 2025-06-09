@@ -7,10 +7,9 @@ import io
 def grain_size_analysis():
     st.subheader("🪨 Grain Size Analysis (Folk & Ward Method)")
 
-    # Choose input method
     input_method = st.radio("Select Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="input_method")
 
-    # ---------------------- Manual Entry ------------------------
+    # --- Manual Entry ---
     if input_method == "✍️ Manual Entry":
         st.markdown("### ✍️ Enter Grain Sizes and Weights")
 
@@ -22,20 +21,24 @@ def grain_size_analysis():
         if "manual_data" not in st.session_state:
             st.session_state.manual_data = default_df.copy()
 
-        df = st.data_editor(
+        # Show table from session
+        edited_df = st.data_editor(
             st.session_state.manual_data,
             num_rows="fixed",
-            use_container_width=True,
-            key="editable_table"
+            use_container_width=True
         )
-        df.dropna(inplace=True)
 
-        # ✅ Correct "Clear All Inputs" (no illegal assignment)
+        # Update session with new values from table
+        st.session_state.manual_data = edited_df.copy()
+
+        # Clear button (reset and rerun)
         if st.button("🧹 Clear All Inputs"):
             st.session_state.manual_data = default_df.copy()
             st.rerun()
 
-    # ---------------------- File Upload ------------------------
+        df = st.session_state.manual_data.copy()
+
+    # --- File Upload ---
     else:
         uploaded_file = st.file_uploader("Upload CSV or Excel with 'Grain Size (mm)' and 'Weight (%)'", type=['csv', 'xlsx'], key="upload_file")
 
@@ -58,7 +61,7 @@ def grain_size_analysis():
             st.info("Upload a file to continue.")
             return
 
-    # ---------------------- Analysis ------------------------
+    # --- Grain Size Analysis ---
     try:
         size = df["Grain Size (mm)"].astype(float).values
         weight = df["Weight (%)"].astype(float).values
