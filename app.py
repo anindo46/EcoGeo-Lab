@@ -28,28 +28,51 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Sidebar UI
+# Sidebar UI (branding only)
 with st.sidebar:
     st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=120)
     st.markdown("### 🧪 EcoGeo Lab")
     st.caption("By **Anindo Paul Sourav**  \nGeology & Mining, University of Barishal")
     st.markdown("---")
-
-    module = st.selectbox("📦 Choose a Module", [
-        "🏠 Home",
-        "🪨 Geology Tools",
-        "🧱 Soil Tools",
-        "🌿 Botany Tools",
-        "🌊 Coastal Tools",
-        "📊 General Tools",
-        "🤖 AI Predictions",
-        "🧬 3D Visualization"
-    ])
-
-    st.markdown("---")
     st.markdown("""
     <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
     """, unsafe_allow_html=True)
+
+# 🌈 Gradient CSS styling for module selector
+st.markdown("""
+    <style>
+    .module-select {
+        background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+        padding: 20px;
+        border-radius: 12px;
+        color: white;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .stSelectbox label {
+        font-size: 18px !important;
+        color: #ffffff !important;
+    }
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: white;
+        color: black;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# 🎯 Main Page Module Selector
+st.markdown("<div class='module-select'><h2>Select a Tool Module</h2></div>", unsafe_allow_html=True)
+
+module = st.selectbox("", [
+    "🏠 Home",
+    "🪨 Geology Tools",
+    "🧱 Soil Tools",
+    "🌿 Botany Tools",
+    "🌊 Coastal Tools",
+    "📊 General Tools",
+    "🤖 AI Predictions",
+    "🧬 3D Visualization"
+], index=0)
 
 # Home Page
 def display_home():
@@ -57,6 +80,7 @@ def display_home():
     with col1:
         lottie = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_w98qte06.json")
         if lottie:
+            from streamlit_lottie import st_lottie
             st_lottie(lottie, speed=1, loop=True, height=250)
         else:
             st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
@@ -70,7 +94,7 @@ def display_home():
             <li>📥 Export results as image, CSV, or PDF</li>
         </ul>
         """, unsafe_allow_html=True)
-    st.success("👈 Select a tool from the sidebar to get started!")
+    st.success("👇 Select a tool module above to get started!")
 
 # Module Routing
 if module == "🏠 Home":
