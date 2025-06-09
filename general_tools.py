@@ -1,43 +1,89 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import matplotlib.pyplot as plt
+import io
+import random
 
 def general_data_tools():
-    st.subheader("📊 General Data Tools: Plot & Table Viewer")
+    st.subheader("📊 General Data Tools")
 
-    uploaded_file = st.file_uploader("📤 Upload a CSV or Excel file", type=['csv', 'xlsx'])
+    input_method = st.radio("Choose Data Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="general_input_method")
 
-    if uploaded_file:
-        try:
-            if uploaded_file.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
+    # Default manual table
+    default_df = pd.DataFrame({
+        "Item": ["Sample A", "Sample B", "Sample C"],
+        "Value": [0, 0, 0]
+    })
 
-            st.write("### 📄 Uploaded Table")
-            st.dataframe(df)
+    # Manual Input
+    if input_method == "✍️ Manual Entry":
+        if "general_df" not in st.session_state:
+            st.session_state.general_df = default_df.copy()
+            st.session_state.general_key = f"gen_{random.randint(1000,9999)}"
 
-            st.markdown("### 📈 Create a Custom Plot")
-            chart_type = st.selectbox("Select chart type", ["Line", "Bar", "Scatter", "Pie"])
+        # Clear All Button
+        if st.button("🧹 Clear All"):
+            st.session_state.general_df = default_df.copy()
+            st.session_state.general_key = f"gen_{random.randint(1000,9999)}"
+            st.rerun()
 
-            x_col = st.selectbox("X-Axis", df.columns)
-            y_col = st.selectbox("Y-Axis", df.columns)
+        edited_df = st.data_editor(
+            st.session_state.general_df,
+            use_container_width=True,
+            num_rows="dynamic",
+            key=st.session_state.general_key
+        )
 
-            if chart_type == "Line":
-                fig = px.line(df, x=x_col, y=y_col, title="Line Plot")
-            elif chart_type == "Bar":
-                fig = px.bar(df, x=x_col, y=y_col, title="Bar Chart")
-            elif chart_type == "Scatter":
-                fig = px.scatter(df, x=x_col, y=y_col, title="Scatter Plot")
-            elif chart_type == "Pie":
-                fig = px.pie(df, names=x_col, values=y_col, title="Pie Chart")
+        if st.button("✅ Apply Data"):
+            st.session_state.general_df = edited_df.copy()
+            st.success("✅ Data Applied")
 
-            st.plotly_chart(fig, use_container_width=True)
+        df = st.session_state.general_df.copy()
 
-            csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button("📥 Download Data as CSV", csv, "table_data.csv")
-
-        except Exception as e:
-            st.error(f"⚠️ Error: {e}")
+    # File Upload
     else:
-        st.info("Upload a file to begin.")
+        file = st.file_uploader("📤 Upload CSV or Excel", type=["csv", "xlsx"], key="general_upload")
+
+        if file:
+            try:
+                if file.name.endswith('.csv'):
+                    df = pd.read_csv(file)
+                else:
+                    df = pd.read_excel(file)
+                st.write("📄 Uploaded Data", df)
+
+                if st.button("🧹 Clear Uploaded File"):
+                    del st.session_state["general_upload"]
+                    st.rerun()
+
+            except Exception as e:
+                st.error(f"❌ Error reading file: {e}")
+                return
+        else:
+            st.info("Upload a file to proceed.")
+            return
+
+    # Data Summary
+    st.markdown("### 📈 Data Summary")
+    st.write(df.describe(include='all').fillna("-"))
+
+    # Column Selection for Plot
+    numeric_cols = df.select_dtypes(include='number').columns.tolist()
+
+    if numeric_cols:
+        st.markdown("### 📊 Quick Chart")
+        col_to_plot = st.selectbox("Select Column to Plot", numeric_cols)
+
+        fig, ax = plt.subplots(figsize=(6, 4))
+        df[col_to_plot].plot(kind="bar", ax=ax, color="cornflowerblue")
+        ax.set_title(f"{col_to_plot} Chart")
+        st.pyplot(fig)
+
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        st.download_button("📥 Download Chart as PNG", buf.getvalue(), file_name="chart.png")
+
+    # Download table
+    csv_buf = io.StringIO()
+    df.to_csv(csv_buf, index=False)
+    st.download_button("📄 Download Table as CSV", csv_buf.getvalue(), file_name="table.csv")
