@@ -7,6 +7,7 @@ import io
 def grain_size_analysis():
     st.subheader("🪨 Grain Size Analysis (Folk & Ward Method)")
 
+    # --- Input Method Selection ---
     input_method = st.radio("Select Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="input_method")
 
     # --- Manual Entry ---
@@ -18,27 +19,32 @@ def grain_size_analysis():
             "Weight (%)": [0]*8
         })
 
+        # Initialize session
         if "manual_data" not in st.session_state:
             st.session_state.manual_data = default_df.copy()
 
-        # Show table from session
+        # Editable table
         edited_df = st.data_editor(
             st.session_state.manual_data,
             num_rows="fixed",
             use_container_width=True
         )
 
-        # Update session with new values from table
-        st.session_state.manual_data = edited_df.copy()
+        # Apply / Clear buttons
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("✅ Apply Data"):
+                st.session_state.manual_data = edited_df.copy()
+                st.success("Data applied successfully ✅")
 
-        # Clear button (reset and rerun)
-        if st.button("🧹 Clear All Inputs"):
-            st.session_state.manual_data = default_df.copy()
-            st.rerun()
+        with col2:
+            if st.button("🧹 Clear All Inputs"):
+                st.session_state.manual_data = default_df.copy()
+                st.rerun()
 
         df = st.session_state.manual_data.copy()
 
-    # --- File Upload ---
+    # --- File Upload Entry ---
     else:
         uploaded_file = st.file_uploader("Upload CSV or Excel with 'Grain Size (mm)' and 'Weight (%)'", type=['csv', 'xlsx'], key="upload_file")
 
@@ -48,6 +54,7 @@ def grain_size_analysis():
                     df = pd.read_csv(uploaded_file)
                 else:
                     df = pd.read_excel(uploaded_file)
+
                 st.write("### 📄 Uploaded Data", df)
 
                 if st.button("🧹 Clear Uploaded File"):
@@ -66,6 +73,7 @@ def grain_size_analysis():
         size = df["Grain Size (mm)"].astype(float).values
         weight = df["Weight (%)"].astype(float).values
 
+        # Phi scale and cumulative % calculation
         phi = -np.log2(size)
         phi_sorted = np.sort(phi)
         weight_sorted = weight[np.argsort(phi)]
@@ -74,6 +82,7 @@ def grain_size_analysis():
         def interpolate(x, y, percentile):
             return np.interp(percentile, y, x)
 
+        # Folk & Ward stats
         phi16 = interpolate(phi_sorted, cumulative_weight, 16)
         phi50 = interpolate(phi_sorted, cumulative_weight, 50)
         phi84 = interpolate(phi_sorted, cumulative_weight, 84)
@@ -91,6 +100,7 @@ def grain_size_analysis():
         - **Skewness (Sk)**: `{skewness:.2f}`
         """)
 
+        # Plot curve
         fig, ax = plt.subplots(figsize=(8, 5))
         ax.plot(phi_sorted, cumulative_weight, marker='o', linestyle='-')
         ax.set_title("Cumulative Grain Size Curve")
@@ -99,6 +109,7 @@ def grain_size_analysis():
         ax.grid(True)
         st.pyplot(fig)
 
+        # Export PNG
         buf = io.BytesIO()
         fig.savefig(buf, format="png")
         st.download_button("📥 Download Plot as PNG", buf.getvalue(), file_name="grain_size_curve.png")
