@@ -1,70 +1,87 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 import io
 
 def grain_size_analysis():
-    st.subheader("📊 Grain Size Analysis (Folk & Ward Method)")
+    st.subheader("🪨 Grain Size Analysis (Folk & Ward Method)")
 
-    uploaded_file = st.file_uploader("Upload CSV/Excel with 'Grain Size (mm)' and 'Weight (%)'", type=['csv', 'xlsx'])
+    option = st.radio("Select Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"])
 
-    if uploaded_file:
-        try:
-            if uploaded_file.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
+    if option == "📤 Upload CSV/Excel":
+        uploaded_file = st.file_uploader("Upload a CSV or Excel with columns: 'Grain Size (mm)', 'Weight (%)'", type=['csv', 'xlsx'])
 
-            st.write("### 📄 Uploaded Data", df.head())
+        if uploaded_file:
+            try:
+                if uploaded_file.name.endswith('.csv'):
+                    df = pd.read_csv(uploaded_file)
+                else:
+                    df = pd.read_excel(uploaded_file)
 
-            size = df["Grain Size (mm)"].values
-            weight = df["Weight (%)"].values
+                st.write("### 📄 Uploaded Data", df)
 
-            # Convert to phi scale
-            phi = -np.log2(size)
-            phi_sorted = np.sort(phi)
-            weight_sorted = weight[np.argsort(phi)]
+            except Exception as e:
+                st.error(f"❌ Error: {e}")
+                return
+        else:
+            st.info("Please upload a file to continue.")
+            return
 
-            cumulative_weight = np.cumsum(weight_sorted) / np.sum(weight_sorted) * 100
-
-            # Interpolation for Folk & Ward parameters
-            def interpolate(x, y, percentile):
-                return np.interp(percentile, y, x)
-
-            phi16 = interpolate(phi_sorted, cumulative_weight, 16)
-            phi50 = interpolate(phi_sorted, cumulative_weight, 50)
-            phi84 = interpolate(phi_sorted, cumulative_weight, 84)
-            phi5 = interpolate(phi_sorted, cumulative_weight, 5)
-            phi95 = interpolate(phi_sorted, cumulative_weight, 95)
-
-            mean = (phi16 + phi50 + phi84) / 3
-            sorting = (phi84 - phi16) / 4 + (phi95 - phi5) / 6.6
-            skewness = ((phi16 + phi84 - 2*phi50)/(2*(phi84 - phi16))) + ((phi5 + phi95 - 2*phi50)/(2*(phi95 - phi5)))
-            kurtosis = (phi95 - phi5) / (2.44 * (phi75 - phi25)) if 'phi75' in locals() else None
-
-            st.markdown(f"""
-            #### 📌 Folk & Ward Parameters:
-            - Mean (Mz): `{mean:.2f}`
-            - Sorting (σ): `{sorting:.2f}`
-            - Skewness (Sk): `{skewness:.2f}`
-            """)
-
-            # Plot cumulative curve
-            fig, ax = plt.subplots(figsize=(8, 5))
-            ax.plot(phi_sorted, cumulative_weight, marker='o')
-            ax.set_title("Cumulative Grain Size Distribution")
-            ax.set_xlabel("Phi Scale")
-            ax.set_ylabel("Cumulative % Weight")
-            ax.grid(True)
-            st.pyplot(fig)
-
-            # Download plot
-            buf = io.BytesIO()
-            fig.savefig(buf, format="png")
-            st.download_button("📥 Download Plot as Image", data=buf.getvalue(), file_name="grain_size_plot.png")
-
-        except Exception as e:
-            st.error(f"⚠️ Error: {e}")
     else:
-        st.info("Please upload a dataset to begin.")
+        st.markdown("### ✍️ Enter Grain Sizes and Weights")
+        manual_data = {
+            "Grain Size (mm)": [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015],
+            "Weight (%)": [0]*8
+        }
+        df = pd.DataFrame(manual_data)
+        df = st.data_editor(df, num_rows="fixed", use_container_width=True)
+        df.dropna(inplace=True)
+
+    try:
+        size = df["Grain Size (mm)"].astype(float).values
+        weight = df["Weight (%)"].astype(float).values
+
+        # Convert to phi scale
+        phi = -np.log2(size)
+        phi_sorted = np.sort(phi)
+        weight_sorted = weight[np.argsort(phi)]
+
+        cumulative_weight = np.cumsum(weight_sorted) / np.sum(weight_sorted) * 100
+
+        def interpolate(x, y, percentile):
+            return np.interp(percentile, y, x)
+
+        phi16 = interpolate(phi_sorted, cumulative_weight, 16)
+        phi50 = interpolate(phi_sorted, cumulative_weight, 50)
+        phi84 = interpolate(phi_sorted, cumulative_weight, 84)
+        phi5 = interpolate(phi_sorted, cumulative_weight, 5)
+        phi95 = interpolate(phi_sorted, cumulative_weight, 95)
+
+        mean = (phi16 + phi50 + phi84) / 3
+        sorting = (phi84 - phi16) / 4 + (phi95 - phi5) / 6.6
+        skewness = ((phi16 + phi84 - 2*phi50)/(2*(phi84 - phi16))) + ((phi5 + phi95 - 2*phi50)/(2*(phi95 - phi5)))
+
+        st.markdown(f"""
+        ### 📌 Folk & Ward Parameters:
+        - **Mean (Mz)**: `{mean:.2f}`
+        - **Sorting (σ)**: `{sorting:.2f}`
+        - **Skewness (Sk)**: `{skewness:.2f}`
+        """)
+
+        # Plot
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(phi_sorted, cumulative_weight, marker='o', linestyle='-')
+        ax.set_title("Cumulative Grain Size Curve")
+        ax.set_xlabel("Phi Scale")
+        ax.set_ylabel("Cumulative % Weight")
+        ax.grid(True)
+        st.pyplot(fig)
+
+        # Export
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        st.download_button("📥 Download Plot as PNG", buf.getvalue(), file_name="grain_size_curve.png")
+
+    except Exception as e:
+        st.error(f"⚠️ Processing Error: {e}")
