@@ -38,6 +38,7 @@ def biodiversity_index_calculator():
         "Count": [0]*5
     })
 
+    # Manual Entry Method
     if input_method == "✍️ Manual Entry":
         if "biodiv_data" not in st.session_state:
             st.session_state.biodiv_data = default_df.copy()
@@ -57,10 +58,11 @@ def biodiversity_index_calculator():
 
         if st.button("✅ Apply Data"):
             st.session_state.biodiv_data = edited_df.copy()
-            st.success("✅ Data applied")
+            st.success("✅ Data Applied")
 
         df = st.session_state.biodiv_data.copy()
 
+    # File Upload Method
     else:
         uploaded = st.file_uploader("Upload CSV with 'Species' and 'Count'", type=["csv"], key="biodiv_upload")
 
@@ -74,13 +76,13 @@ def biodiversity_index_calculator():
                     st.rerun()
 
             except Exception as e:
-                st.error(f"❌ File error: {e}")
+                st.error(f"❌ File Error: {e}")
                 return
         else:
             st.info("Upload a valid CSV to proceed.")
             return
 
-    # --- Calculations ---
+    # --- Calculation Section ---
     try:
         df.dropna(inplace=True)
         df["Count"] = df["Count"].astype(int)
@@ -106,6 +108,7 @@ def biodiversity_index_calculator():
         - **Evenness (J)**: `{J:.3f}`
         """)
 
+        # Plotting Chart
         fig, ax = plt.subplots(figsize=(8, 4))
         ax.bar(df["Species"], df["Count"], color="forestgreen")
         ax.set_title("Species Abundance")
@@ -114,10 +117,12 @@ def biodiversity_index_calculator():
         plt.xticks(rotation=30)
         st.pyplot(fig)
 
+        # PNG Export
         buf = io.BytesIO()
         fig.savefig(buf, format="png")
         st.download_button("📥 Download Chart as PNG", buf.getvalue(), file_name="biodiversity_chart.png")
 
+        # CSV Export
         csv_buf = io.StringIO()
         df[["Species", "Count"]].to_csv(csv_buf, index=False)
         st.download_button("📄 Download Table as CSV", csv_buf.getvalue(), file_name="biodiversity_data.csv")
