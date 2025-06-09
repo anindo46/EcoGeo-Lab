@@ -7,6 +7,50 @@ import random
 def general_data_tools():
     st.subheader("📊 General Data Tools")
 
+    # --- How-to-Use Guide ---
+    with st.expander("📘 How to Use This Tool (with Example)", expanded=False):
+        st.markdown("""
+        ### 🧪 Real-Life Example: Soil Density Study  
+        Let’s say you're a student doing fieldwork, and you measured **bulk density** at several sites:
+
+        | Site | Bulk Density (g/cm³) |
+        |------|----------------------|
+        | Site A | 1.25  
+        | Site B | 1.42  
+        | Site C | 1.55  
+        | Site D | 1.33  
+
+        #### 🚀 Steps to Use:
+
+        **Option 1: Manual Entry**
+        - Select `✍️ Manual Entry`
+        - Fill in the table (e.g., Site names & Bulk Density)
+        - Click ✅ **Apply Data**
+        - View stats and charts
+
+        **Option 2: Upload CSV**
+        - Select `📤 Upload CSV/Excel`
+        - Upload a file like:
+
+        ```csv
+        Site,Bulk Density
+        Site A,1.25
+        Site B,1.42
+        Site C,1.55
+        Site D,1.33
+        ```
+
+        #### 🎁 Features
+        - Auto summary of numbers ✅  
+        - Charts 📊  
+        - Export CSV and PNG 📥  
+        - Clear with one click 🧹  
+
+        #### 💡 Try with:
+        - Plant heights, rock hardness, water pH, mineral %, etc.
+        """)
+
+    # --- Input Method ---
     input_method = st.radio("Choose Data Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="general_input_method")
 
     # Default manual table
@@ -67,7 +111,7 @@ def general_data_tools():
     st.markdown("### 📈 Data Summary")
     st.write(df.describe(include='all').fillna("-"))
 
-    # Column Selection for Plot
+    # Chart for numeric columns
     numeric_cols = df.select_dtypes(include='number').columns.tolist()
 
     if numeric_cols:
@@ -83,7 +127,7 @@ def general_data_tools():
         fig.savefig(buf, format="png")
         st.download_button("📥 Download Chart as PNG", buf.getvalue(), file_name="chart.png")
 
-    # Download table
+    # Download Table
     csv_buf = io.StringIO()
     df.to_csv(csv_buf, index=False)
     st.download_button("📄 Download Table as CSV", csv_buf.getvalue(), file_name="table.csv")
