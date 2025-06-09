@@ -8,3 +8,4 @@ openpyxl
 Pillow
 streamlit-lottie
 requests
+kaleido
