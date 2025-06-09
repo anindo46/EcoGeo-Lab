@@ -28,7 +28,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Sidebar UI (branding only)
+# Sidebar Branding
 with st.sidebar:
     st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=120)
     st.markdown("### 🧪 EcoGeo Lab")
@@ -38,31 +38,66 @@ with st.sidebar:
     <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
     """, unsafe_allow_html=True)
 
-# 🌈 Gradient CSS styling for module selector
+# Custom CSS for Pro UI
 st.markdown("""
     <style>
-    .module-select {
-        background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
-        padding: 20px;
-        border-radius: 12px;
+    .module-card {
+        background: linear-gradient(135deg, #4b6cb7, #182848);
+        padding: 2rem;
+        border-radius: 18px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        margin: 3rem auto 2rem;
+        width: 80%;
         color: white;
         text-align: center;
-        margin-bottom: 20px;
     }
-    .stSelectbox label {
-        font-size: 18px !important;
-        color: #ffffff !important;
+    .module-card h3 {
+        margin-bottom: 1.5rem;
+        font-size: 26px;
+        letter-spacing: 0.5px;
     }
-    .stSelectbox div[data-baseweb="select"] {
-        background-color: white;
-        color: black;
+    .stSelectbox {
+        background: white;
+        border-radius: 12px !important;
+    }
+    div[data-baseweb="select"] > div {
+        border-radius: 10px;
+        padding: 6px;
+        font-size: 16px;
+    }
+    .block-container {
+        padding-top: 1rem;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# 🎯 Main Page Module Selector
-st.markdown("<div class='module-select'><h2>Select a Tool Module</h2></div>", unsafe_allow_html=True)
+# Welcome Section
+def display_home():
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        lottie = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_w98qte06.json")
+        if lottie:
+            st_lottie(lottie, speed=1, loop=True, height=250)
+        else:
+            st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
+    with col2:
+        st.markdown("<h1 style='color:#2c3e50;'>Welcome to <span style='color:#4B8BBE;'>EcoGeo Lab</span></h1>", unsafe_allow_html=True)
+        st.markdown("""
+        <p style='font-size:18px;'>A smart all-in-one web toolkit for:</p>
+        <ul>
+            <li>🪨 Geology</li>
+            <li>🧱 Soil Science</li>
+            <li>🌿 Botany</li>
+            <li>🌊 Coastal Studies</li>
+            <li>📊 Data Tools</li>
+            <li>🤖 AI Prediction</li>
+            <li>🧬 3D Visualization</li>
+        </ul>
+        <p>📥 Upload CSV/Excel or enter data manually and get 📊 instant charts, 📈 results, and 📤 exports!</p>
+        """, unsafe_allow_html=True)
 
+# Module Selector Card
+st.markdown("<div class='module-card'><h3>📦 Select Your Tool Module</h3>", unsafe_allow_html=True)
 module = st.selectbox("", [
     "🏠 Home",
     "🪨 Geology Tools",
@@ -73,30 +108,9 @@ module = st.selectbox("", [
     "🤖 AI Predictions",
     "🧬 3D Visualization"
 ], index=0)
+st.markdown("</div>", unsafe_allow_html=True)
 
-# Home Page
-def display_home():
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        lottie = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_w98qte06.json")
-        if lottie:
-            from streamlit_lottie import st_lottie
-            st_lottie(lottie, speed=1, loop=True, height=250)
-        else:
-            st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
-    with col2:
-        st.markdown("<h1 style='color:#4B8BBE;'>Welcome to EcoGeo Lab</h1>", unsafe_allow_html=True)
-        st.markdown("""
-        <p style='font-size:18px;'>Your all-in-one smart science lab for Geology, Soil, Botany, and Coastal Research.</p>
-        <ul>
-            <li>📁 Upload datasets easily</li>
-            <li>📊 Get instant analysis & plots</li>
-            <li>📥 Export results as image, CSV, or PDF</li>
-        </ul>
-        """, unsafe_allow_html=True)
-    st.success("👇 Select a tool module above to get started!")
-
-# Module Routing
+# Routing Logic
 if module == "🏠 Home":
     display_home()
 elif module == "🪨 Geology Tools":
