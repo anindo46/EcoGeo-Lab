@@ -7,12 +7,14 @@ import io
 def grain_size_analysis():
     st.subheader("🪨 Grain Size Analysis (Folk & Ward Method)")
 
-    # --- Choose Input Method ---
+    # --- Input Method Selection ---
     input_method = st.radio("Select Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="input_method")
 
-    # --- Manual Input ---
+    # --- MANUAL ENTRY ---
     if input_method == "✍️ Manual Entry":
         st.markdown("### ✍️ Enter Grain Sizes and Weights")
+
+        # Initialize manual data if not already in session
         if "manual_data" not in st.session_state:
             st.session_state.manual_data = pd.DataFrame({
                 "Grain Size (mm)": [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015],
@@ -22,14 +24,15 @@ def grain_size_analysis():
         df = st.data_editor(st.session_state.manual_data, num_rows="fixed", use_container_width=True, key="manual_table")
         df.dropna(inplace=True)
 
-        # ✅ Clear only manual data (preserve input method)
+        # ✅ Properly reset to blank values
         if st.button("🧹 Clear All Inputs"):
-            if "manual_data" in st.session_state:
-                del st.session_state["manual_data"]
-                del st.session_state["manual_table"]
+            st.session_state.manual_data = pd.DataFrame({
+                "Grain Size (mm)": [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015],
+                "Weight (%)": [0]*8
+            })
             st.rerun()
 
-    # --- File Upload Input ---
+    # --- FILE UPLOAD ---
     else:
         uploaded_file = st.file_uploader("Upload CSV or Excel with 'Grain Size (mm)' and 'Weight (%)'", type=['csv', 'xlsx'], key="upload_file")
 
@@ -41,6 +44,7 @@ def grain_size_analysis():
                     df = pd.read_excel(uploaded_file)
                 st.write("### 📄 Uploaded Data", df)
 
+                # Optional reset for uploads
                 if st.button("🧹 Clear Uploaded File"):
                     del st.session_state["upload_file"]
                     st.rerun()
@@ -52,7 +56,7 @@ def grain_size_analysis():
             st.info("Upload a file to continue.")
             return
 
-    # --- Analysis ---
+    # --- GRAIN SIZE PROCESSING ---
     try:
         size = df["Grain Size (mm)"].astype(float).values
         weight = df["Weight (%)"].astype(float).values
