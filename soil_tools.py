@@ -1,97 +1,105 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.io as pio
+import matplotlib.pyplot as plt
 import io
-
-# Texture classification function (approximate)
-def predict_soil_texture(sand, silt, clay):
-    if clay > 40:
-        return "Clay"
-    elif clay >= 27 and silt >= 28 and silt < 40:
-        return "Clay Loam"
-    elif clay >= 20 and clay < 27 and silt > 28:
-        return "Loam"
-    elif sand >= 70 and silt < 30 and clay < 15:
-        return "Sandy"
-    elif silt >= 80 and clay < 12:
-        return "Silt"
-    elif silt >= 50 and clay >= 12 and clay < 27:
-        return "Silty Loam"
-    else:
-        return "Loam"
+import random
+import ternary  # You must have 'python-ternary' installed
 
 def soil_texture_triangle():
-    st.subheader("🧱 Soil Texture Triangle (with Prediction + Export)")
+    st.subheader("🧪 Soil Texture Triangle Tool")
 
-    option = st.radio("Select Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"])
+    # 📘 Real-Life Use Case Guide
+    with st.expander("📘 How to Use (Example: Soil Classification)", expanded=False):
+        st.markdown("""
+        ### 🌱 Scenario: Field Soil Classification  
+        After lab testing a soil sample, you found:
+        
+        - **Sand:** 30%  
+        - **Silt:** 50%  
+        - **Clay:** 20%
 
-    if option == "📤 Upload CSV/Excel":
-        uploaded_file = st.file_uploader("Upload CSV or Excel with columns: Sand, Silt, Clay", type=['csv', 'xlsx'])
+        #### 🚀 Steps:
+        - Manually input values or upload a CSV with Sand/Silt/Clay columns.
+        - Click ✅ Apply.
+        - View the triangle and predicted texture class (e.g., Loam).
+        - Export PNG or result CSV.
 
-        if uploaded_file:
-            try:
-                if uploaded_file.name.endswith('.csv'):
-                    df = pd.read_csv(uploaded_file)
-                else:
-                    df = pd.read_excel(uploaded_file)
+        #### 💡 Use For:
+        - Agriculture, irrigation, hydrology, soil profiling.
+        """)
 
-                st.write("### 📄 Uploaded Data", df)
+    input_method = st.radio("Select Input Method", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="soil_input_method")
 
-            except Exception as e:
-                st.error(f"❌ Error reading file: {e}")
-                return
-        else:
-            st.info("Please upload a file to continue.")
-            return
+    default_df = pd.DataFrame({
+        "Sand": [30],
+        "Silt": [50],
+        "Clay": [20]
+    })
+
+    if input_method == "✍️ Manual Entry":
+        if "soil_df" not in st.session_state:
+            st.session_state.soil_df = default_df.copy()
+            st.session_state.soil_key = f"soil_{random.randint(1000,9999)}"
+
+        if st.button("🧹 Clear All Inputs"):
+            st.session_state.soil_df = default_df.copy()
+            st.session_state.soil_key = f"soil_{random.randint(1000,9999)}"
+            st.rerun()
+
+        edited_df = st.data_editor(
+            st.session_state.soil_df,
+            use_container_width=True,
+            num_rows="dynamic",
+            key=st.session_state.soil_key
+        )
+
+        if st.button("✅ Apply Data"):
+            st.session_state.soil_df = edited_df.copy()
+            st.success("✅ Data Applied")
+
+        df = st.session_state.soil_df.copy()
 
     else:
-        st.markdown("### ✍️ Enter up to 5 samples manually")
-        manual_data = {
-            "Sample": [f"Sample {i+1}" for i in range(5)],
-            "Sand": [0]*5,
-            "Silt": [0]*5,
-            "Clay": [0]*5
-        }
-        df = pd.DataFrame(manual_data)
-        df = st.data_editor(df, use_container_width=True, num_rows="fixed")
-        df.dropna(inplace=True)
-
-    # Validation
-    if not all(col in df.columns for col in ["Sand", "Silt", "Clay"]):
-        st.error("⚠️ Columns must include Sand, Silt, and Clay")
-        return
+        uploaded = st.file_uploader("Upload a CSV with Sand, Silt, and Clay columns", type=["csv"])
+        if uploaded:
+            try:
+                df = pd.read_csv(uploaded)
+                st.write("📄 Uploaded Data", df)
+                if st.button("🧹 Clear Uploaded File"):
+                    del st.session_state["soil_input_method"]
+                    st.rerun()
+            except Exception as e:
+                st.error(f"❌ Upload Error: {e}")
+                return
+        else:
+            st.info("Upload your CSV to proceed.")
+            return
 
     try:
-        # Normalize
-        df_total = df[["Sand", "Silt", "Clay"]].sum(axis=1)
-        df["Sand"] = df["Sand"] / df_total * 100
-        df["Silt"] = df["Silt"] / df_total * 100
-        df["Clay"] = df["Clay"] / df_total * 100
+        fig, tax = ternary.figure(scale=100)
+        fig.set_size_inches(6, 6)
 
-        # Add prediction
-        df["Texture"] = df.apply(lambda row: predict_soil_texture(row["Sand"], row["Silt"], row["Clay"]), axis=1)
+        for index, row in df.iterrows():
+            point = (row["Sand"], row["Clay"], row["Silt"])
+            tax.plot([point], marker='o', label=f"Sample {index+1}")
 
-        st.write("### 🧪 Analyzed Data with Predicted Texture")
-        st.dataframe(df)
+        tax.boundary(linewidth=1.5)
+        tax.gridlines(color="gray", multiple=10)
+        tax.left_axis_label("Clay %", offset=0.14)
+        tax.right_axis_label("Silt %", offset=0.14)
+        tax.bottom_axis_label("Sand %", offset=0.10)
+        tax.ticks(axis='lbr', linewidth=1, multiple=10)
 
-        # Plot
-        fig = px.scatter_ternary(df,
-                                 a="Clay", b="Silt", c="Sand",
-                                 color="Texture",
-                                 symbol="Texture",
-                                 hover_name=df["Sample"] if "Sample" in df.columns else df.index.astype(str),
-                                 size_max=10,
-                                 title="Soil Texture Triangle (with Prediction)")
-        st.plotly_chart(fig, use_container_width=True)
+        tax.clear_matplotlib_ticks()
+        tax._redraw_labels()
+        tax.legend()
+        tax.set_title("Soil Texture Triangle")
 
-        # PNG Export
-        buffer = io.BytesIO()
-        pio.write_image(fig, buffer, format='png', width=800, height=600, engine="kaleido")
-        st.download_button("📥 Download Triangle Plot as PNG", buffer.getvalue(), file_name="soil_texture_triangle.png")
+        st.pyplot(fig)
 
-        # CSV Export
-        st.download_button("📥 Download Table as CSV", df.to_csv(index=False).encode('utf-8'), file_name="soil_texture_data.csv")
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        st.download_button("📥 Download Triangle as PNG", buf.getvalue(), file_name="soil_texture_triangle.png")
 
     except Exception as e:
-        st.error(f"⚠️ Processing Error: {e}")
+        st.error(f"❌ Error: {e}")
