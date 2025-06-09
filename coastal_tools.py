@@ -2,47 +2,90 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from PIL import Image
 import io
+import random
 
 def coastal_ndwi_viewer():
-    st.subheader("🌊 NDWI & Shoreline Change Viewer")
+    st.subheader("🌊 NDWI Viewer (Normalized Difference Water Index)")
 
-    st.markdown("""
-    Upload pre-processed **satellite band data** (e.g. Green and NIR) in CSV/Excel format  
-    - Format: Each row should represent a pixel  
-    - Columns required: `Green`, `NIR`
-    """)
+    input_method = st.radio("Select Input Method:", ["📤 Upload Green & NIR CSV", "✍️ Manual Entry"], key="ndwi_input_method")
 
-    uploaded_file = st.file_uploader("📤 Upload Satellite Pixel Data", type=['csv', 'xlsx'])
+    default_green = pd.DataFrame(np.random.randint(50, 100, size=(5, 5)), columns=[f"C{i}" for i in range(1, 6)])
+    default_nir = pd.DataFrame(np.random.randint(50, 100, size=(5, 5)), columns=[f"C{i}" for i in range(1, 6)])
 
-    if uploaded_file:
-        try:
-            if uploaded_file.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
+    if input_method == "✍️ Manual Entry":
+        if "ndwi_green" not in st.session_state:
+            st.session_state.ndwi_green = default_green.copy()
+            st.session_state.ndwi_nir = default_nir.copy()
+            st.session_state.ndwi_key = f"ndwi_{random.randint(1000,9999)}"
 
-            st.write("### 📄 Uploaded Data", df.head())
+        # Clear All
+        if st.button("🧹 Clear All Inputs"):
+            st.session_state.ndwi_green = default_green.copy()
+            st.session_state.ndwi_nir = default_nir.copy()
+            st.session_state.ndwi_key = f"ndwi_{random.randint(1000,9999)}"
+            st.rerun()
 
-            if not all(col in df.columns for col in ["Green", "NIR"]):
-                st.error("⚠️ Required columns: Green, NIR")
-                return
+        st.markdown("#### ✅ Enter Green Band Values")
+        green_df = st.data_editor(
+            st.session_state.ndwi_green,
+            use_container_width=True,
+            key=f"{st.session_state.ndwi_key}_green"
+        )
 
-            df["NDWI"] = (df["Green"] - df["NIR"]) / (df["Green"] + df["NIR"])
-            st.line_chart(df["NDWI"])
+        st.markdown("#### ✅ Enter NIR Band Values")
+        nir_df = st.data_editor(
+            st.session_state.ndwi_nir,
+            use_container_width=True,
+            key=f"{st.session_state.ndwi_key}_nir"
+        )
 
-            st.markdown(f"""
-            #### 📌 NDWI Summary:
-            - **Min NDWI**: `{df["NDWI"].min():.4f}`
-            - **Max NDWI**: `{df["NDWI"].max():.4f}`
-            - **Mean NDWI**: `{df["NDWI"].mean():.4f}`
-            """)
+        if st.button("✅ Apply NDWI Calculation"):
+            st.session_state.ndwi_green = green_df.copy()
+            st.session_state.ndwi_nir = nir_df.copy()
+            st.success("✅ Data applied")
 
-            csv_export = df.to_csv(index=False).encode('utf-8')
-            st.download_button("📥 Download NDWI Data", csv_export, "ndwi_output.csv")
+        green = st.session_state.ndwi_green.to_numpy().astype(float)
+        nir = st.session_state.ndwi_nir.to_numpy().astype(float)
 
-        except Exception as e:
-            st.error(f"⚠️ Error: {e}")
     else:
-        st.info("Upload Green/NIR data to calculate NDWI.")
+        green_file = st.file_uploader("📤 Upload Green Band CSV", type=["csv"], key="green_csv")
+        nir_file = st.file_uploader("📤 Upload NIR Band CSV", type=["csv"], key="nir_csv")
+
+        if not green_file or not nir_file:
+            st.warning("Upload both Green and NIR band CSVs to continue.")
+            return
+
+        try:
+            green = pd.read_csv(green_file).to_numpy().astype(float)
+            nir = pd.read_csv(nir_file).to_numpy().astype(float)
+        except Exception as e:
+            st.error(f"❌ Error loading files: {e}")
+            return
+
+    # --- Calculate NDWI ---
+    try:
+        denominator = (green + nir)
+        denominator[denominator == 0] = 0.0001  # avoid division by zero
+        ndwi = (green - nir) / denominator
+
+        st.markdown("### 🖼️ NDWI Map Preview")
+        fig, ax = plt.subplots(figsize=(6, 5))
+        cax = ax.imshow(ndwi, cmap="BrBG", vmin=-1, vmax=1)
+        fig.colorbar(cax, ax=ax, label="NDWI Value")
+        ax.set_title("NDWI Map")
+        st.pyplot(fig)
+
+        # Export PNG
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        st.download_button("📥 Download NDWI Map (PNG)", buf.getvalue(), file_name="ndwi_map.png")
+
+        # Export CSV
+        ndwi_df = pd.DataFrame(ndwi.round(3))
+        csv_buf = io.StringIO()
+        ndwi_df.to_csv(csv_buf, index=False)
+        st.download_button("📄 Download NDWI Values (CSV)", csv_buf.getvalue(), file_name="ndwi_values.csv")
+
+    except Exception as e:
+        st.error(f"⚠️ NDWI calculation failed: {e}")
