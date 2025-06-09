@@ -7,26 +7,11 @@ import io
 def grain_size_analysis():
     st.subheader("🪨 Grain Size Analysis (Folk & Ward Method)")
 
-    option = st.radio("Select Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="input_method")
+    # --- Choose Input Method ---
+    input_method = st.radio("Select Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="input_method")
 
-    if option == "📤 Upload CSV/Excel":
-        uploaded_file = st.file_uploader("Upload CSV or Excel with 'Grain Size (mm)' and 'Weight (%)'", type=['csv', 'xlsx'], key="upload_file")
-
-        if uploaded_file:
-            try:
-                if uploaded_file.name.endswith('.csv'):
-                    df = pd.read_csv(uploaded_file)
-                else:
-                    df = pd.read_excel(uploaded_file)
-                st.write("### 📄 Uploaded Data", df)
-            except Exception as e:
-                st.error(f"❌ Error reading file: {e}")
-                return
-        else:
-            st.info("Upload a file to continue.")
-            return
-
-    else:
+    # --- Manual Input ---
+    if input_method == "✍️ Manual Entry":
         st.markdown("### ✍️ Enter Grain Sizes and Weights")
         if "manual_data" not in st.session_state:
             st.session_state.manual_data = pd.DataFrame({
@@ -37,12 +22,37 @@ def grain_size_analysis():
         df = st.data_editor(st.session_state.manual_data, num_rows="fixed", use_container_width=True, key="manual_table")
         df.dropna(inplace=True)
 
-        # ✅ Move clear button below manual table
-        if st.button("🧹 Clear All Inputs & Outputs"):
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
+        # ✅ Clear only manual data (preserve input method)
+        if st.button("🧹 Clear All Inputs"):
+            if "manual_data" in st.session_state:
+                del st.session_state["manual_data"]
+                del st.session_state["manual_table"]
             st.rerun()
 
+    # --- File Upload Input ---
+    else:
+        uploaded_file = st.file_uploader("Upload CSV or Excel with 'Grain Size (mm)' and 'Weight (%)'", type=['csv', 'xlsx'], key="upload_file")
+
+        if uploaded_file:
+            try:
+                if uploaded_file.name.endswith('.csv'):
+                    df = pd.read_csv(uploaded_file)
+                else:
+                    df = pd.read_excel(uploaded_file)
+                st.write("### 📄 Uploaded Data", df)
+
+                if st.button("🧹 Clear Uploaded File"):
+                    del st.session_state["upload_file"]
+                    st.rerun()
+
+            except Exception as e:
+                st.error(f"❌ Error reading file: {e}")
+                return
+        else:
+            st.info("Upload a file to continue.")
+            return
+
+    # --- Analysis ---
     try:
         size = df["Grain Size (mm)"].astype(float).values
         weight = df["Weight (%)"].astype(float).values
