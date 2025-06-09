@@ -34,17 +34,10 @@ st.markdown("""
     body {
         background: linear-gradient(to right, #e0eafc, #cfdef3);
     }
-    .app-title {
-        text-align: center;
-        font-size: 42px;
-        font-weight: 700;
-        color: #2c3e50;
-        margin-top: 1rem;
-    }
     .credit {
         text-align: center;
         font-size: 16px;
-        margin-top: -0.5rem;
+        margin-top: 1rem;
         color: #555;
     }
     .module-card {
@@ -77,10 +70,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Title and Credit
-st.markdown("<div class='app-title'>🌍 EcoGeo Lab</div>", unsafe_allow_html=True)
-st.markdown("<div class='credit'>By Anindo Paul Sourav — Geology & Mining, University of Barishal</div>", unsafe_allow_html=True)
-
 # Sidebar Branding (for logo and tips only)
 with st.sidebar:
     st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=120)
@@ -111,23 +100,28 @@ def display_home():
         </ul>
         """, unsafe_allow_html=True)
 
-# Module Selector Card
-st.markdown("<div class='module-card'><h3>📦 Select Your Tool Module</h3>", unsafe_allow_html=True)
-module = st.selectbox("", [
-    "🏠 Home",
-    "🪨 Geology Tools",
-    "🧱 Soil Tools",
-    "🌿 Botany Tools",
-    "🌊 Coastal Tools",
-    "📊 General Tools",
-    "🤖 AI Predictions",
-    "🦮 3D Visualization"
-], index=0)
-st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("<div class='module-card'><h3>📦 Select Your Tool Module</h3>", unsafe_allow_html=True)
+    module = st.selectbox("", [
+        "🏠 Home",
+        "🪨 Geology Tools",
+        "🧱 Soil Tools",
+        "🌿 Botany Tools",
+        "🌊 Coastal Tools",
+        "📊 General Tools",
+        "🤖 AI Predictions",
+        "🦮 3D Visualization"
+    ], index=0)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    return module
+
+# Display Credit
+st.markdown("<div class='credit'>By Anindo Paul Sourav — Geology & Mining, University of Barishal</div>", unsafe_allow_html=True)
 
 # Routing
+module = display_home()
 if module == "🏠 Home":
-    display_home()
+    pass  # Already displayed
 elif module == "🪨 Geology Tools":
     grain_size_analysis()
 elif module == "🧱 Soil Tools":
