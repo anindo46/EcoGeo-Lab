@@ -28,99 +28,53 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Enhanced Pro UI Styling
-st.markdown("""
-    <style>
-    body {
-        background: linear-gradient(to right, #e0eafc, #f7fbff);
-        font-family: 'Segoe UI', sans-serif;
-    }
-    .credit {
-        text-align: center;
-        font-size: 14px;
-        margin-top: 2rem;
-        color: #444;
-    }
-    .module-card {
-        background: linear-gradient(120deg, #4e54c8, #8f94fb);
-        padding: 1rem;
-        border-radius: 14px;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
-        margin: 1.5rem auto;
-        width: 90%;
-        max-width: 650px;
-        color: white;
-        text-align: center;
-    }
-    .module-card h3 {
-        margin-bottom: 0.8rem;
-        font-size: 17px;
-        font-weight: 600;
-    }
-    .block-container {
-        padding-top: 2rem;
-    }
-    ul li {
-        margin: 6px 0;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# Sidebar Branding (Logo, Tips, and Description)
+# Sidebar UI
 with st.sidebar:
     st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=120)
     st.markdown("### 🧪 EcoGeo Lab")
-    st.caption("A Smart Environmental Science Toolkit")
+    st.caption("By **Anindo Paul Sourav**  \nGeology & Mining, University of Barishal")
+    st.markdown("---")
+
+    module = st.selectbox("📦 Choose a Module", [
+        "🏠 Home",
+        "🪨 Geology Tools",
+        "🧱 Soil Tools",
+        "🌿 Botany Tools",
+        "🌊 Coastal Tools",
+        "📊 General Tools",
+        "🤖 AI Predictions",
+        "🧬 3D Visualization"
+    ])
+
     st.markdown("---")
     st.markdown("""
-    <p style='font-size:14px; color:#555;'>EcoGeo Lab is a browser-based research toolkit designed for students and scientists in Geology, Soil, Botany, Coastal Science, and AI-powered environmental studies. Use each module to visualize, analyze, and export your data seamlessly.</p>
     <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
     """, unsafe_allow_html=True)
 
-# Welcome Section
-st.markdown("""
-<div class='module-card'>
-    <h2 style='margin-bottom:0.4rem;'>Welcome to <span style='color:#f9f9f9;'>EcoGeo Lab</span></h2>
-    <p style='font-size:13px;'>An all-in-one toolkit for Geoscience, Botany, Soil, Coastal, AI, and 3D Visualization.</p>
-</div>
-""", unsafe_allow_html=True)
+# Home Page
+def display_home():
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        lottie = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_w98qte06.json")
+        if lottie:
+            st_lottie(lottie, speed=1, loop=True, height=250)
+        else:
+            st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
+    with col2:
+        st.markdown("<h1 style='color:#4B8BBE;'>Welcome to EcoGeo Lab</h1>", unsafe_allow_html=True)
+        st.markdown("""
+        <p style='font-size:18px;'>Your all-in-one smart science lab for Geology, Soil, Botany, and Coastal Research.</p>
+        <ul>
+            <li>📁 Upload datasets easily</li>
+            <li>📊 Get instant analysis & plots</li>
+            <li>📥 Export results as image, CSV, or PDF</li>
+        </ul>
+        """, unsafe_allow_html=True)
+    st.success("👈 Select a tool from the sidebar to get started!")
 
-# Routing
-module = st.selectbox("📦 Select Your Tool Module", [
-    "🏠 Home",
-    "🪨 Geology Tools",
-    "🧱 Soil Tools",
-    "🌿 Botany Tools",
-    "🌊 Coastal Tools",
-    "📊 General Tools",
-    "🤖 AI Predictions",
-    "🦮 3D Visualization"
-], index=0)
-
-# Instruction at the end
-st.markdown("""
----
-### ℹ️ How to Use EcoGeo Lab:
-- Choose a tool module from the list above
-- Upload your dataset (CSV/Excel) or enter values manually
-- Analyze data using built-in calculations
-- Download charts and reports with one click
-
-Use it for class projects, research, or exploration — all from your browser 🚀
-""")
-
-# Credit
-st.markdown("""
-<div class='credit'>
-    Made with ❤️ by <strong>Anindo Paul Sourav</strong><br>
-    Student, Department of Geology & Mining,<br>
-    University of Barishal — Climate Innovator | GIS & Remote Sensing Enthusiast
-</div>
-""", unsafe_allow_html=True)
-
-# Module execution
+# Module Routing
 if module == "🏠 Home":
-    pass
+    display_home()
 elif module == "🪨 Geology Tools":
     grain_size_analysis()
 elif module == "🧱 Soil Tools":
@@ -133,7 +87,7 @@ elif module == "📊 General Tools":
     general_data_tools()
 elif module == "🤖 AI Predictions":
     ai_prediction_tool()
-elif module == "🦮 3D Visualization":
+elif module == "🧬 3D Visualization":
     visual_3d_tool()
 
 # Footer
