@@ -51,45 +51,26 @@ with st.sidebar:
     <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
     """, unsafe_allow_html=True)
 
-
-if module == "Home":
-    st.title("🌍 Welcome to EcoGeo Lab")
-    st.markdown("""
-    <style>
-    .big-title {
-        font-size: 28px;
-        font-weight: bold;
-        color: #2c3e50;
-    }
-    .subtitle {
-        font-size: 18px;
-        color: #7f8c8d;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown('<p class="big-title">🌍 EcoGeo Lab: Smart Toolkit for Environmental Sciences</p>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">📊 Visualize | 📈 Analyze | 🤖 Predict</p>', unsafe_allow_html=True)
-
-    st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=150)
-
-    st.markdown("""
-    **EcoGeo Lab** integrates modern tools for:
-    - 🪨 Geology
-    - 🟫 Soil Science
-    - 🌿 Botany
-    - 🌊 Coastal Study
-    - 📡 3D Visualization
-    - 🤖 AI-based Forecasting
-
-    👉 Use the sidebar to access modules  
-    👉 Each tool includes real-life examples  
-    👉 Export your results instantly (PNG, CSV)
-    """)
-
-    st.success("Start exploring from the sidebar 👈")
-
-
+# Home Page
+def display_home():
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        lottie = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_w98qte06.json")
+        if lottie:
+            st_lottie(lottie, speed=1, loop=True, height=250)
+        else:
+            st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
+    with col2:
+        st.markdown("<h1 style='color:#4B8BBE;'>Welcome to EcoGeo Lab</h1>", unsafe_allow_html=True)
+        st.markdown("""
+        <p style='font-size:18px;'>Your all-in-one smart science lab for Geology, Soil, Botany, and Coastal Research.</p>
+        <ul>
+            <li>📁 Upload datasets easily</li>
+            <li>📊 Get instant analysis & plots</li>
+            <li>📥 Export results as image, CSV, or PDF</li>
+        </ul>
+        """, unsafe_allow_html=True)
+    st.success("👈 Select a tool from the sidebar to get started!")
 
 # Module Routing
 if module == "🏠 Home":
