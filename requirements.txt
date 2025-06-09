@@ -9,3 +9,4 @@ Pillow
 streamlit-lottie
 requests
 kaleido
+python-ternary
