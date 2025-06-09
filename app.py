@@ -44,28 +44,28 @@ st.markdown("""
     }
     .module-card {
         background: linear-gradient(120deg, #4e54c8, #8f94fb);
-        padding: 3rem 2rem;
-        border-radius: 24px;
-        box-shadow: 0 12px 28px rgba(0,0,0,0.2);
-        margin: 3rem auto;
+        padding: 1.5rem 1rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        margin: 2rem auto 1rem;
         width: 90%;
-        max-width: 800px;
+        max-width: 700px;
         color: white;
         text-align: center;
     }
     .module-card h3 {
-        margin-bottom: 2rem;
-        font-size: 30px;
-        font-weight: 700;
+        margin-bottom: 1rem;
+        font-size: 22px;
+        font-weight: 600;
     }
     .stSelectbox label {
-        font-size: 18px;
+        font-size: 16px;
         color: #333;
     }
     div[data-baseweb="select"] > div {
-        border-radius: 12px;
-        padding: 12px;
-        font-size: 17px;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 15px;
     }
     .block-container {
         padding-top: 2rem;
