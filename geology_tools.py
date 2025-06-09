@@ -7,32 +7,33 @@ import io
 def grain_size_analysis():
     st.subheader("🪨 Grain Size Analysis (Folk & Ward Method)")
 
-    # --- Input Method Selection ---
+    # Select input method
     input_method = st.radio("Select Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="input_method")
 
-    # --- MANUAL ENTRY ---
+    # -------------------- MANUAL ENTRY --------------------
     if input_method == "✍️ Manual Entry":
         st.markdown("### ✍️ Enter Grain Sizes and Weights")
 
-        # Initialize manual data if not already in session
+        # Initialize default data
+        default_df = pd.DataFrame({
+            "Grain Size (mm)": [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015],
+            "Weight (%)": [0]*8
+        })
+
+        # First-time load
         if "manual_data" not in st.session_state:
-            st.session_state.manual_data = pd.DataFrame({
-                "Grain Size (mm)": [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015],
-                "Weight (%)": [0]*8
-            })
+            st.session_state.manual_data = default_df.copy()
 
-        df = st.data_editor(st.session_state.manual_data, num_rows="fixed", use_container_width=True, key="manual_table")
-        df.dropna(inplace=True)
+        # Show editable table
+        df = st.data_editor(st.session_state.manual_data, num_rows="fixed", use_container_width=True, key="editable_table")
 
-        # ✅ Properly reset to blank values
+        # Clear all button (resets session state + reruns)
         if st.button("🧹 Clear All Inputs"):
-            st.session_state.manual_data = pd.DataFrame({
-                "Grain Size (mm)": [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015],
-                "Weight (%)": [0]*8
-            })
+            st.session_state.manual_data = default_df.copy()
+            st.session_state["editable_table"] = default_df.copy()
             st.rerun()
 
-    # --- FILE UPLOAD ---
+    # -------------------- FILE UPLOAD --------------------
     else:
         uploaded_file = st.file_uploader("Upload CSV or Excel with 'Grain Size (mm)' and 'Weight (%)'", type=['csv', 'xlsx'], key="upload_file")
 
@@ -44,7 +45,6 @@ def grain_size_analysis():
                     df = pd.read_excel(uploaded_file)
                 st.write("### 📄 Uploaded Data", df)
 
-                # Optional reset for uploads
                 if st.button("🧹 Clear Uploaded File"):
                     del st.session_state["upload_file"]
                     st.rerun()
@@ -56,16 +56,18 @@ def grain_size_analysis():
             st.info("Upload a file to continue.")
             return
 
-    # --- GRAIN SIZE PROCESSING ---
+    # -------------------- ANALYSIS --------------------
     try:
         size = df["Grain Size (mm)"].astype(float).values
         weight = df["Weight (%)"].astype(float).values
 
+        # Convert to phi and sort
         phi = -np.log2(size)
         phi_sorted = np.sort(phi)
         weight_sorted = weight[np.argsort(phi)]
         cumulative_weight = np.cumsum(weight_sorted) / np.sum(weight_sorted) * 100
 
+        # Interpolation
         def interpolate(x, y, percentile):
             return np.interp(percentile, y, x)
 
@@ -79,6 +81,7 @@ def grain_size_analysis():
         sorting = (phi84 - phi16) / 4 + (phi95 - phi5) / 6.6
         skewness = ((phi16 + phi84 - 2 * phi50) / (2 * (phi84 - phi16))) + ((phi5 + phi95 - 2 * phi50) / (2 * (phi95 - phi5)))
 
+        # Display results
         st.markdown(f"""
         ### 📌 Folk & Ward Parameters:
         - **Mean (Mz)**: `{mean:.2f}`
@@ -86,6 +89,7 @@ def grain_size_analysis():
         - **Skewness (Sk)**: `{skewness:.2f}`
         """)
 
+        # Plot
         fig, ax = plt.subplots(figsize=(8, 5))
         ax.plot(phi_sorted, cumulative_weight, marker='o', linestyle='-')
         ax.set_title("Cumulative Grain Size Curve")
@@ -94,6 +98,7 @@ def grain_size_analysis():
         ax.grid(True)
         st.pyplot(fig)
 
+        # PNG Export
         buf = io.BytesIO()
         fig.savefig(buf, format="png")
         st.download_button("📥 Download Plot as PNG", buf.getvalue(), file_name="grain_size_curve.png")
