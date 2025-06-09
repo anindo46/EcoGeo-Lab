@@ -43,27 +43,28 @@ st.markdown("""
         color: #4a4a4a;
     }
     .module-card {
-        background: linear-gradient(120deg, #2b5876, #4e4376);
-        padding: 2.5rem;
-        border-radius: 20px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        background: linear-gradient(120deg, #4e54c8, #8f94fb);
+        padding: 3rem 2rem;
+        border-radius: 24px;
+        box-shadow: 0 12px 28px rgba(0,0,0,0.2);
         margin: 3rem auto;
-        width: 85%;
+        width: 90%;
+        max-width: 800px;
         color: white;
         text-align: center;
     }
     .module-card h3 {
-        margin-bottom: 1.5rem;
-        font-size: 28px;
-        font-weight: 600;
+        margin-bottom: 2rem;
+        font-size: 30px;
+        font-weight: 700;
     }
-    .stSelectbox {
-        background: white;
-        border-radius: 15px !important;
+    .stSelectbox label {
+        font-size: 18px;
+        color: #333;
     }
     div[data-baseweb="select"] > div {
         border-radius: 12px;
-        padding: 8px;
+        padding: 12px;
         font-size: 17px;
     }
     .block-container {
@@ -85,7 +86,7 @@ with st.sidebar:
     <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
     """, unsafe_allow_html=True)
 
-# Welcome + Selector Section
+# Welcome Section
 col1, col2 = st.columns([1, 2])
 with col1:
     lottie = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_w98qte06.json")
@@ -96,17 +97,17 @@ with col1:
 with col2:
     st.markdown("""
     <h2 style='color:#2c3e50; margin-bottom: 0;'>Welcome to <span style='color:#4B8BBE;'>EcoGeo Lab</span></h2>
-    <p style='font-size:17px;'>All-in-one platform for Geoscience, Soil, Botany, Coastal, AI, and 3D Visualization tools.</p>
+    <p style='font-size:17px;'>An interactive web toolkit for Geoscience, Soil, Botany, Coastal, AI, and 3D Visualization.</p>
     <ul>
-        <li>📂 Upload or input your data easily</li>
-        <li>📊 Visualize with interactive plots</li>
-        <li>📥 Export your results as PNG, CSV, or PDF</li>
+        <li>📂 Upload or manually enter your data</li>
+        <li>📊 Instantly visualize results with professional charts</li>
+        <li>📥 Export outcomes as PNG, CSV, or PDF</li>
     </ul>
     """, unsafe_allow_html=True)
 
-# Styled Tool Selector
+# Module Selector Below Welcome
 st.markdown("<div class='module-card'><h3>📦 Select Your Tool Module</h3>", unsafe_allow_html=True)
-module = st.selectbox("", [
+module = st.selectbox("Select Module", [
     "🏠 Home",
     "🪨 Geology Tools",
     "🧱 Soil Tools",
