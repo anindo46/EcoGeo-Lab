@@ -1,15 +1,17 @@
 import streamlit as st
 import pandas as pd
-import ternary
-import matplotlib.pyplot as plt
-import io
+import plotly.express as px
 
 def soil_texture_triangle():
-    st.subheader("🟫 Soil Texture Triangle (USDA)")
+    st.subheader("🧱 Soil Texture Triangle (USDA Approximation)")
 
-    st.markdown("Upload a CSV/Excel file with **Sand**, **Silt**, and **Clay** percentages (must total ~100%)")
+    st.markdown("""
+    Upload a CSV/Excel file with **Sand**, **Silt**, and **Clay** percentages.  
+    Columns must be named exactly: `Sand`, `Silt`, `Clay`  
+    Values should total ~100.
+    """)
 
-    uploaded_file = st.file_uploader("📤 Upload Soil Texture CSV or Excel", type=['csv', 'xlsx'])
+    uploaded_file = st.file_uploader("📤 Upload Soil Texture Data", type=['csv', 'xlsx'])
 
     if uploaded_file:
         try:
@@ -18,34 +20,27 @@ def soil_texture_triangle():
             else:
                 df = pd.read_excel(uploaded_file)
 
-            st.write("### 📄 Uploaded Data", df.head())
+            st.write("### 📄 Uploaded Data", df)
 
             if not all(col in df.columns for col in ["Sand", "Silt", "Clay"]):
-                st.error("⚠️ Columns must include 'Sand', 'Silt', and 'Clay'")
+                st.error("❌ Columns must include: Sand, Silt, Clay")
                 return
 
-            fig, tax = ternary.figure(scale=100)
-            tax.boundary()
-            tax.gridlines(multiple=10, color="gray")
+            # Normalize to 100% if needed
+            df_total = df[["Sand", "Silt", "Clay"]].sum(axis=1)
+            df["Sand"] = df["Sand"] / df_total * 100
+            df["Silt"] = df["Silt"] / df_total * 100
+            df["Clay"] = df["Clay"] / df_total * 100
 
-            tax.left_axis_label("Clay (%)", fontsize=12)
-            tax.right_axis_label("Silt (%)", fontsize=12)
-            tax.bottom_axis_label("Sand (%)", fontsize=12)
-            tax.ticks(axis='lbr', multiple=10, linewidth=1)
-
-            for i, row in df.iterrows():
-                sand, silt, clay = row["Sand"], row["Silt"], row["Clay"]
-                tax.scatter([(sand, silt, clay)], marker='o', label=f'Sample {i+1}')
-
-            tax.legend()
-            st.pyplot(fig)
-
-            # Downloadable image
-            buf = io.BytesIO()
-            fig.savefig(buf, format="png")
-            st.download_button("📥 Download Triangle Plot", data=buf.getvalue(), file_name="soil_texture_triangle.png")
+            fig = px.scatter_ternary(df,
+                                     a="Clay", b="Silt", c="Sand",
+                                     color="Clay",
+                                     size_max=10,
+                                     hover_name=df.index.astype(str),
+                                     title="Soil Texture Triangle (Simplified View)")
+            st.plotly_chart(fig, use_container_width=True)
 
         except Exception as e:
             st.error(f"⚠️ Error: {e}")
     else:
-        st.info("Please upload soil composition data to begin.")
+        st.info("Upload a CSV or Excel file to begin.")
