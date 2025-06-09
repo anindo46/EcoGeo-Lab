@@ -9,29 +9,7 @@ def grain_size_analysis():
     st.subheader("🪨 Grain Size Analysis (Folk & Ward Method)")
 
 
-    with st.expander("📘 How to Use (Example: Sediment Analysis)", expanded=False):
-    st.markdown("""
-    ### 🪨 Scenario: Riverbed Sediment Analysis  
-    You're analyzing sediment samples from three river stations. You've sieved the sample and calculated the percentage retained per sieve size.
 
-    | Sieve Size (mm) | % Retained |
-    |-----------------|------------|
-    | 2.0             | 5  
-    | 1.0             | 15  
-    | 0.5             | 25  
-    | 0.25            | 35  
-    | 0.125           | 15  
-    | 0.063           | 5  
-
-    #### 🚀 Steps:
-    - Choose `✍️ Manual Entry` or upload a CSV like above.
-    - Click ✅ Apply.
-    - View grain size statistics (mean, sorting, skewness).
-    - Export chart or CSV.
-
-    #### 💡 Use For:
-    - Soil mechanics, sedimentology, coastal deposits.
-    """)
 
 
     input_method = st.radio("Select Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="input_method")
