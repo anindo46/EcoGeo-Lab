@@ -28,25 +28,31 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Sidebar Branding
-with st.sidebar:
-    st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=120)
-    st.markdown("### 🧪 EcoGeo Lab")
-    st.caption("By **Anindo Paul Sourav**  \nGeology & Mining, University of Barishal")
-    st.markdown("---")
-    st.markdown("""
-    <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
-    """, unsafe_allow_html=True)
-
 # Custom CSS for Pro UI
 st.markdown("""
     <style>
+    body {
+        background: linear-gradient(to right, #e0eafc, #cfdef3);
+    }
+    .app-title {
+        text-align: center;
+        font-size: 42px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-top: 1rem;
+    }
+    .credit {
+        text-align: center;
+        font-size: 16px;
+        margin-top: -0.5rem;
+        color: #555;
+    }
     .module-card {
         background: linear-gradient(135deg, #4b6cb7, #182848);
         padding: 2rem;
         border-radius: 18px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        margin: 3rem auto 2rem;
+        margin: 2rem auto;
         width: 80%;
         color: white;
         text-align: center;
@@ -71,7 +77,21 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Welcome Section
+# Title and Credit
+st.markdown("<div class='app-title'>🌍 EcoGeo Lab</div>", unsafe_allow_html=True)
+st.markdown("<div class='credit'>By Anindo Paul Sourav — Geology & Mining, University of Barishal</div>", unsafe_allow_html=True)
+
+# Sidebar Branding (for logo and tips only)
+with st.sidebar:
+    st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=120)
+    st.markdown("### 🧪 EcoGeo Lab")
+    st.caption("A Smart Environmental Science Toolkit")
+    st.markdown("---")
+    st.markdown("""
+    <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
+    """, unsafe_allow_html=True)
+
+# Welcome Section (optional visual or message)
 def display_home():
     col1, col2 = st.columns([1, 2])
     with col1:
@@ -81,19 +101,14 @@ def display_home():
         else:
             st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
     with col2:
-        st.markdown("<h1 style='color:#2c3e50;'>Welcome to <span style='color:#4B8BBE;'>EcoGeo Lab</span></h1>", unsafe_allow_html=True)
         st.markdown("""
-        <p style='font-size:18px;'>A smart all-in-one web toolkit for:</p>
+        <h2 style='color:#2c3e50;'>Welcome to <span style='color:#4B8BBE;'>EcoGeo Lab</span></h2>
+        <p style='font-size:18px;'>All-in-one smart lab for Geoscience, Soil, Botany, Coastal & AI tools.</p>
         <ul>
-            <li>🪨 Geology</li>
-            <li>🧱 Soil Science</li>
-            <li>🌿 Botany</li>
-            <li>🌊 Coastal Studies</li>
-            <li>📊 Data Tools</li>
-            <li>🤖 AI Prediction</li>
-            <li>🧬 3D Visualization</li>
+            <li>📁 Upload or input data manually</li>
+            <li>📊 Generate interactive plots</li>
+            <li>📄 Export as PNG, CSV, or PDF</li>
         </ul>
-        <p>📥 Upload CSV/Excel or enter data manually and get 📊 instant charts, 📈 results, and 📤 exports!</p>
         """, unsafe_allow_html=True)
 
 # Module Selector Card
@@ -106,11 +121,11 @@ module = st.selectbox("", [
     "🌊 Coastal Tools",
     "📊 General Tools",
     "🤖 AI Predictions",
-    "🧬 3D Visualization"
+    "🦮 3D Visualization"
 ], index=0)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Routing Logic
+# Routing
 if module == "🏠 Home":
     display_home()
 elif module == "🪨 Geology Tools":
@@ -125,7 +140,7 @@ elif module == "📊 General Tools":
     general_data_tools()
 elif module == "🤖 AI Predictions":
     ai_prediction_tool()
-elif module == "🧬 3D Visualization":
+elif module == "🦮 3D Visualization":
     visual_3d_tool()
 
 # Footer
