@@ -8,6 +8,30 @@ import random
 def coastal_ndwi_viewer():
     st.subheader("🌊 NDWI Viewer (Normalized Difference Water Index)")
 
+    # 📘 Real-Life Use Case Guide
+    with st.expander("📘 How to Use (Example: Wetland Detection)", expanded=False):
+        st.markdown("""
+        ### 🌊 Scenario: Water Body Mapping  
+        You downloaded Sentinel-2 satellite image bands for your study area.
+
+        - **Green Band (Band 3)** and **NIR Band (Band 8)** are needed for NDWI.
+        - NDWI helps detect water bodies, wetlands, or flooded zones.
+
+        #### 🚀 Steps:
+        - Upload two CSV files:
+            - One for **Green Band** values
+            - One for **NIR Band** values
+        - Or manually input 2D arrays for Green and NIR bands.
+        - Click ✅ Apply.
+        - Tool calculates NDWI = (Green - NIR) / (Green + NIR)
+        - Displays NDWI map + export options
+
+        #### 💡 Use For:
+        - Water surface mapping
+        - Flood analysis
+        - Wetland or irrigation detection
+        """)
+
     input_method = st.radio("Select Input Method:", ["📤 Upload Green & NIR CSV", "✍️ Manual Entry"], key="ndwi_input_method")
 
     default_green = pd.DataFrame(np.random.randint(50, 100, size=(5, 5)), columns=[f"C{i}" for i in range(1, 6)])
@@ -19,7 +43,6 @@ def coastal_ndwi_viewer():
             st.session_state.ndwi_nir = default_nir.copy()
             st.session_state.ndwi_key = f"ndwi_{random.randint(1000,9999)}"
 
-        # Clear All
         if st.button("🧹 Clear All Inputs"):
             st.session_state.ndwi_green = default_green.copy()
             st.session_state.ndwi_nir = default_nir.copy()
@@ -43,7 +66,7 @@ def coastal_ndwi_viewer():
         if st.button("✅ Apply NDWI Calculation"):
             st.session_state.ndwi_green = green_df.copy()
             st.session_state.ndwi_nir = nir_df.copy()
-            st.success("✅ Data applied")
+            st.success("✅ Data Applied")
 
         green = st.session_state.ndwi_green.to_numpy().astype(float)
         nir = st.session_state.ndwi_nir.to_numpy().astype(float)
@@ -63,7 +86,7 @@ def coastal_ndwi_viewer():
             st.error(f"❌ Error loading files: {e}")
             return
 
-    # --- Calculate NDWI ---
+    # NDWI Calculation
     try:
         denominator = (green + nir)
         denominator[denominator == 0] = 0.0001  # avoid division by zero
@@ -76,12 +99,10 @@ def coastal_ndwi_viewer():
         ax.set_title("NDWI Map")
         st.pyplot(fig)
 
-        # Export PNG
         buf = io.BytesIO()
         fig.savefig(buf, format="png")
         st.download_button("📥 Download NDWI Map (PNG)", buf.getvalue(), file_name="ndwi_map.png")
 
-        # Export CSV
         ndwi_df = pd.DataFrame(ndwi.round(3))
         csv_buf = io.StringIO()
         ndwi_df.to_csv(csv_buf, index=False)
