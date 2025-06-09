@@ -8,9 +8,30 @@ import random
 def grain_size_analysis():
     st.subheader("🪨 Grain Size Analysis (Folk & Ward Method)")
 
+    # 📘 Real-Life Use Case Guide
+    with st.expander("📘 How to Use (Example: Sediment Analysis)", expanded=False):
+        st.markdown("""
+        ### 🪨 Scenario: Riverbed Sediment Analysis  
+        You're analyzing sediment samples from three river stations. You've sieved the sample and calculated the percentage retained per sieve size.
 
+        | Sieve Size (mm) | % Retained |
+        |-----------------|------------|
+        | 2.0             | 5  
+        | 1.0             | 15  
+        | 0.5             | 25  
+        | 0.25            | 35  
+        | 0.125           | 15  
+        | 0.063           | 5  
 
+        #### 🚀 Steps:
+        - Choose `✍️ Manual Entry` or upload a CSV like above.
+        - Click ✅ Apply.
+        - View grain size statistics (mean, sorting, skewness).
+        - Export chart or CSV.
 
+        #### 💡 Use For:
+        - Soil mechanics, sedimentology, coastal deposits.
+        """)
 
     input_method = st.radio("Select Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="input_method")
 
@@ -22,18 +43,15 @@ def grain_size_analysis():
             "Weight (%)": [0]*8
         })
 
-        # First time init
         if "manual_data" not in st.session_state:
             st.session_state.manual_data = default_df.copy()
             st.session_state.editor_key = f"editor_{random.randint(1,10000)}"
 
-        # Clear all button
         if st.button("🧹 Clear All Inputs"):
             st.session_state.manual_data = default_df.copy()
-            st.session_state.editor_key = f"editor_{random.randint(1,10000)}"  # force rerender
+            st.session_state.editor_key = f"editor_{random.randint(1,10000)}"
             st.rerun()
 
-        # Editable table
         edited_df = st.data_editor(
             st.session_state.manual_data,
             num_rows="fixed",
@@ -41,7 +59,6 @@ def grain_size_analysis():
             key=st.session_state.editor_key
         )
 
-        # Apply updated values
         if st.button("✅ Apply Data"):
             st.session_state.manual_data = edited_df.copy()
             st.success("✅ Data applied!")
