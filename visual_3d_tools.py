@@ -1,70 +1,105 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
+import plotly.express as px
+import numpy as np
+import io
+import random
 
 def visual_3d_tool():
-    st.subheader("🧱 3D Visualization Tool – Soil / Point Cloud / Surface")
+    st.subheader("📡 3D Visualization Tool (Point Cloud & Profiles)")
 
-    st.markdown("""
-    Upload a CSV or Excel file with:
-    - For **Point Cloud**: `X`, `Y`, `Z`
-    - For **Soil Profile**: `Depth`, `Soil Property` (e.g., Texture, pH, Color Index)
-    """)
+    # 📘 Real-Life Use Case
+    with st.expander("📘 How to Use (Example: Soil Profile or Point Cloud)", expanded=False):
+        st.markdown("""
+        ### 🏞️ Scenario: Visualizing Soil Sample or Lidar Data  
+        You collected elevation or depth data (X, Y, Z) from:
 
-    uploaded_file = st.file_uploader("📤 Upload 3D Data (CSV/XLSX)", type=['csv', 'xlsx'])
+        - **Soil pit profiling**
+        - **Lidar scans**
+        - **Topographic surveys**
 
-    if uploaded_file:
-        try:
-            if uploaded_file.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
+        #### 🚀 Steps:
+        - Upload a CSV or input manually:
+            - Columns = X, Y, Z (e.g., position & elevation/depth)
+        - Click ✅ Apply.
+        - 3D plot shows point cloud with depth/elevation.
+        - Export image or data.
 
-            st.write("### 📄 Uploaded Data", df.head())
+        #### 💡 Use For:
+        - 3D terrain models
+        - Lidar/lab profile points
+        - Borehole/sample visualization
+        """)
 
-            columns = df.columns.tolist()
-            viz_type = st.radio("Choose Visualization Type", ["Point Cloud", "Soil Profile"])
+    input_method = st.radio("Select Input Method", ["📤 Upload CSV", "✍️ Manual Entry"], key="vis3d_input_method")
 
-            if viz_type == "Point Cloud":
-                x = st.selectbox("Select X axis", columns)
-                y = st.selectbox("Select Y axis", columns)
-                z = st.selectbox("Select Z axis", columns)
+    default_df = pd.DataFrame({
+        "X": [1, 2, 3, 4, 5],
+        "Y": [10, 12, 14, 16, 18],
+        "Z": [100, 105, 110, 115, 120]
+    })
 
-                fig = go.Figure(data=[go.Scatter3d(
-                    x=df[x], y=df[y], z=df[z],
-                    mode='markers',
-                    marker=dict(size=4, color=df[z], colorscale='Viridis', opacity=0.8)
-                )])
+    if input_method == "✍️ Manual Entry":
+        if "vis3d_df" not in st.session_state:
+            st.session_state.vis3d_df = default_df.copy()
+            st.session_state.vis3d_key = f"vis3d_{random.randint(1000,9999)}"
 
-                fig.update_layout(scene=dict(xaxis_title=x, yaxis_title=y, zaxis_title=z),
-                                  title="3D Point Cloud Viewer")
-                st.plotly_chart(fig, use_container_width=True)
+        if st.button("🧹 Clear All Inputs"):
+            st.session_state.vis3d_df = default_df.copy()
+            st.session_state.vis3d_key = f"vis3d_{random.randint(1000,9999)}"
+            st.rerun()
 
-            elif viz_type == "Soil Profile":
-                depth = st.selectbox("Select Depth Axis", columns)
-                prop = st.selectbox("Select Property to Color By", [col for col in columns if col != depth])
+        edited_df = st.data_editor(
+            st.session_state.vis3d_df,
+            use_container_width=True,
+            num_rows="dynamic",
+            key=st.session_state.vis3d_key
+        )
 
-                fig = go.Figure(data=go.Scatter3d(
-                    x=[1]*len(df),  # Dummy X for vertical profile
-                    y=[1]*len(df),
-                    z=df[depth],
-                    mode='markers',
-                    marker=dict(
-                        size=10,
-                        color=df[prop],
-                        colorscale='Earth',
-                        showscale=True
-                    )
-                ))
-                fig.update_layout(scene=dict(
-                    xaxis_title="Profile",
-                    yaxis_title="",
-                    zaxis_title=depth
-                ), title="3D Soil Profile")
+        if st.button("✅ Apply Data"):
+            st.session_state.vis3d_df = edited_df.copy()
+            st.success("✅ Data Applied")
 
-                st.plotly_chart(fig, use_container_width=True)
+        df = st.session_state.vis3d_df.copy()
 
-        except Exception as e:
-            st.error(f"⚠️ Error: {e}")
     else:
-        st.info("Upload a valid file with appropriate columns.")
+        uploaded = st.file_uploader("Upload CSV with 'X', 'Y', 'Z' columns", type=["csv"], key="vis3d_upload")
+
+        if uploaded:
+            try:
+                df = pd.read_csv(uploaded)
+                st.write("📄 Uploaded Data", df)
+
+                if st.button("🧹 Clear Uploaded File"):
+                    del st.session_state["vis3d_upload"]
+                    st.rerun()
+
+            except Exception as e:
+                st.error(f"❌ File Error: {e}")
+                return
+        else:
+            st.info("Upload a valid CSV to proceed.")
+            return
+
+    # --- 3D Plotting ---
+    try:
+        fig = px.scatter_3d(
+            df,
+            x='X', y='Y', z='Z',
+            color='Z',
+            size_max=8,
+            opacity=0.8,
+            color_continuous_scale='Viridis'
+        )
+        fig.update_layout(title="3D Point Cloud Visualization", margin=dict(l=0, r=0, b=0, t=30))
+        st.plotly_chart(fig, use_container_width=True)
+
+        # PNG Export
+        st.download_button(
+            "📥 Download Data as CSV",
+            df.to_csv(index=False),
+            file_name="3d_point_cloud.csv"
+        )
+
+    except Exception as e:
+        st.error(f"⚠️ Visualization Error: {e}")
