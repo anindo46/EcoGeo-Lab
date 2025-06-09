@@ -44,22 +44,22 @@ st.markdown("""
     }
     .module-card {
         background: linear-gradient(120deg, #4e54c8, #8f94fb);
-        padding: 1.5rem 1rem;
-        border-radius: 16px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        margin: 2rem auto 1rem;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        margin: 1.5rem auto 1rem;
         width: 90%;
-        max-width: 700px;
+        max-width: 600px;
         color: white;
         text-align: center;
     }
     .module-card h3 {
-        margin-bottom: 1rem;
-        font-size: 22px;
-        font-weight: 600;
+        margin-bottom: 0.7rem;
+        font-size: 18px;
+        font-weight: 500;
     }
     .stSelectbox label {
-        font-size: 16px;
+        font-size: 15px;
         color: #333;
     }
     div[data-baseweb="select"] > div {
@@ -106,7 +106,7 @@ with col2:
     """, unsafe_allow_html=True)
 
 # Module Selector Below Welcome
-st.markdown("<div class='module-card'><h3>📦 Select Your Tool Module</h3>", unsafe_allow_html=True)
+st.markdown("<div class='module-card'><h3>📦 Please select your tool module below</h3>", unsafe_allow_html=True)
 module = st.selectbox("Select Module", [
     "🏠 Home",
     "🪨 Geology Tools",
@@ -121,6 +121,18 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 # Credit
 st.markdown("<div class='credit'>By Anindo Paul Sourav — Geology & Mining, University of Barishal</div>", unsafe_allow_html=True)
+
+# Instruction at the end
+st.markdown("""
+---
+### ℹ️ How to Use EcoGeo Lab:
+- Choose a tool module from the list above
+- Upload your dataset (CSV/Excel) or enter values manually
+- Analyze data using built-in calculations
+- Download charts and reports with one click
+
+Use it for class projects, research, or exploration — all from your browser 🚀
+""")
 
 # Routing
 if module == "🏠 Home":
