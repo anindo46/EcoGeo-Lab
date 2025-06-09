@@ -37,35 +37,34 @@ st.markdown("""
     }
     .credit {
         text-align: center;
-        font-size: 16px;
+        font-size: 14px;
         margin-top: 2rem;
-        margin-bottom: -1.5rem;
-        color: #4a4a4a;
+        color: #444;
     }
     .module-card {
         background: linear-gradient(120deg, #4e54c8, #8f94fb);
-        padding: 0.8rem 1rem;
-        border-radius: 12px;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-        margin: 1.5rem auto 1rem;
+        padding: 0.6rem 1rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 14px rgba(0,0,0,0.1);
+        margin: 1rem auto 1rem;
         width: 90%;
-        max-width: 600px;
+        max-width: 580px;
         color: white;
         text-align: center;
     }
     .module-card h3 {
-        margin-bottom: 0.7rem;
-        font-size: 18px;
+        margin-bottom: 0.3rem;
+        font-size: 16px;
         font-weight: 500;
     }
     .stSelectbox label {
-        font-size: 15px;
+        font-size: 14px;
         color: #333;
     }
     div[data-baseweb="select"] > div {
         border-radius: 10px;
-        padding: 10px;
-        font-size: 15px;
+        padding: 8px;
+        font-size: 14px;
     }
     .block-container {
         padding-top: 2rem;
@@ -76,13 +75,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Sidebar Branding (Logo and Tips)
+# Sidebar Branding (Logo, Tips, and Description)
 with st.sidebar:
     st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=120)
     st.markdown("### 🧪 EcoGeo Lab")
     st.caption("A Smart Environmental Science Toolkit")
     st.markdown("---")
     st.markdown("""
+    <p style='font-size:14px; color:#555;'>EcoGeo Lab is a browser-based research toolkit designed for students and scientists in Geology, Soil, Botany, Coastal Science, and AI-powered environmental studies. Use each module to visualize, analyze, and export your data seamlessly.</p>
     <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
     """, unsafe_allow_html=True)
 
@@ -97,8 +97,8 @@ with col1:
 with col2:
     st.markdown("""
     <h2 style='color:#2c3e50; margin-bottom: 0;'>Welcome to <span style='color:#4B8BBE;'>EcoGeo Lab</span></h2>
-    <p style='font-size:17px;'>An interactive web toolkit for Geoscience, Soil, Botany, Coastal, AI, and 3D Visualization.</p>
-    <ul>
+    <p style='font-size:15px;'>An interactive web toolkit for Geoscience, Soil, Botany, Coastal, AI, and 3D Visualization.</p>
+    <ul style='font-size:14px;'>
         <li>📂 Upload or manually enter your data</li>
         <li>📊 Instantly visualize results with professional charts</li>
         <li>📥 Export outcomes as PNG, CSV, or PDF</li>
@@ -119,9 +119,6 @@ module = st.selectbox("Select Module", [
 ], index=0)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Credit
-st.markdown("<div class='credit'>By Anindo Paul Sourav — Geology & Mining, University of Barishal</div>", unsafe_allow_html=True)
-
 # Instruction at the end
 st.markdown("""
 ---
@@ -133,6 +130,15 @@ st.markdown("""
 
 Use it for class projects, research, or exploration — all from your browser 🚀
 """)
+
+# Credit
+st.markdown("""
+<div class='credit'>
+    Made with ❤️ by <strong>Anindo Paul Sourav</strong><br>
+    Student, Department of Geology & Mining,<br>
+    University of Barishal — Climate Innovator | GIS & Remote Sensing Enthusiast
+</div>
+""", unsafe_allow_html=True)
 
 # Routing
 if module == "🏠 Home":
