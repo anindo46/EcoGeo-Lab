@@ -1,4 +1,4 @@
-streamlit
+streamlit>=1.25.0
 pandas
 numpy
 matplotlib
@@ -8,3 +8,4 @@ scikit-learn
 openpyxl
 Pillow
 streamlit-lottie
+requests
