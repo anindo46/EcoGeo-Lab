@@ -28,49 +28,54 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for Pro UI
+# Enhanced Pro UI Styling
 st.markdown("""
     <style>
     body {
-        background: linear-gradient(to right, #e0eafc, #cfdef3);
+        background: linear-gradient(to right, #e0eafc, #f7fbff);
+        font-family: 'Segoe UI', sans-serif;
     }
     .credit {
         text-align: center;
         font-size: 16px;
-        margin-top: 1rem;
-        color: #555;
+        margin-top: 2rem;
+        margin-bottom: -1.5rem;
+        color: #4a4a4a;
     }
     .module-card {
-        background: linear-gradient(135deg, #4b6cb7, #182848);
-        padding: 2rem;
-        border-radius: 18px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        margin: 2rem auto;
-        width: 80%;
+        background: linear-gradient(120deg, #2b5876, #4e4376);
+        padding: 2.5rem;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        margin: 3rem auto;
+        width: 85%;
         color: white;
         text-align: center;
     }
     .module-card h3 {
         margin-bottom: 1.5rem;
-        font-size: 26px;
-        letter-spacing: 0.5px;
+        font-size: 28px;
+        font-weight: 600;
     }
     .stSelectbox {
         background: white;
-        border-radius: 12px !important;
+        border-radius: 15px !important;
     }
     div[data-baseweb="select"] > div {
-        border-radius: 10px;
-        padding: 6px;
-        font-size: 16px;
+        border-radius: 12px;
+        padding: 8px;
+        font-size: 17px;
     }
     .block-container {
-        padding-top: 1rem;
+        padding-top: 2rem;
+    }
+    ul li {
+        margin: 6px 0;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Sidebar Branding (for logo and tips only)
+# Sidebar Branding (Logo and Tips)
 with st.sidebar:
     st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=120)
     st.markdown("### 🧪 EcoGeo Lab")
@@ -80,48 +85,45 @@ with st.sidebar:
     <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
     """, unsafe_allow_html=True)
 
-# Welcome Section (optional visual or message)
-def display_home():
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        lottie = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_w98qte06.json")
-        if lottie:
-            st_lottie(lottie, speed=1, loop=True, height=250)
-        else:
-            st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
-    with col2:
-        st.markdown("""
-        <h2 style='color:#2c3e50;'>Welcome to <span style='color:#4B8BBE;'>EcoGeo Lab</span></h2>
-        <p style='font-size:18px;'>All-in-one smart lab for Geoscience, Soil, Botany, Coastal & AI tools.</p>
-        <ul>
-            <li>📁 Upload or input data manually</li>
-            <li>📊 Generate interactive plots</li>
-            <li>📄 Export as PNG, CSV, or PDF</li>
-        </ul>
-        """, unsafe_allow_html=True)
+# Welcome + Selector Section
+col1, col2 = st.columns([1, 2])
+with col1:
+    lottie = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_w98qte06.json")
+    if lottie:
+        st_lottie(lottie, speed=1, loop=True, height=250)
+    else:
+        st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
+with col2:
+    st.markdown("""
+    <h2 style='color:#2c3e50; margin-bottom: 0;'>Welcome to <span style='color:#4B8BBE;'>EcoGeo Lab</span></h2>
+    <p style='font-size:17px;'>All-in-one platform for Geoscience, Soil, Botany, Coastal, AI, and 3D Visualization tools.</p>
+    <ul>
+        <li>📂 Upload or input your data easily</li>
+        <li>📊 Visualize with interactive plots</li>
+        <li>📥 Export your results as PNG, CSV, or PDF</li>
+    </ul>
+    """, unsafe_allow_html=True)
 
-    st.markdown("<div class='module-card'><h3>📦 Select Your Tool Module</h3>", unsafe_allow_html=True)
-    module = st.selectbox("", [
-        "🏠 Home",
-        "🪨 Geology Tools",
-        "🧱 Soil Tools",
-        "🌿 Botany Tools",
-        "🌊 Coastal Tools",
-        "📊 General Tools",
-        "🤖 AI Predictions",
-        "🦮 3D Visualization"
-    ], index=0)
-    st.markdown("</div>", unsafe_allow_html=True)
+# Styled Tool Selector
+st.markdown("<div class='module-card'><h3>📦 Select Your Tool Module</h3>", unsafe_allow_html=True)
+module = st.selectbox("", [
+    "🏠 Home",
+    "🪨 Geology Tools",
+    "🧱 Soil Tools",
+    "🌿 Botany Tools",
+    "🌊 Coastal Tools",
+    "📊 General Tools",
+    "🤖 AI Predictions",
+    "🦮 3D Visualization"
+], index=0)
+st.markdown("</div>", unsafe_allow_html=True)
 
-    return module
-
-# Display Credit
+# Credit
 st.markdown("<div class='credit'>By Anindo Paul Sourav — Geology & Mining, University of Barishal</div>", unsafe_allow_html=True)
 
 # Routing
-module = display_home()
 if module == "🏠 Home":
-    pass  # Already displayed
+    pass
 elif module == "🪨 Geology Tools":
     grain_size_analysis()
 elif module == "🧱 Soil Tools":
