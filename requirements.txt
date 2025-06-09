@@ -1,0 +1,10 @@
+streamlit
+pandas
+numpy
+matplotlib
+matplotlib-ternary
+plotly
+scikit-learn
+openpyxl
+Pillow
+streamlit-lottie
