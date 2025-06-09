@@ -1,54 +1,108 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import io
+import random
 
 def biodiversity_index_calculator():
     st.subheader("🌿 Biodiversity Index Calculator")
-    st.markdown("Upload a CSV or Excel file with **Species** and **Abundance** columns")
 
-    uploaded_file = st.file_uploader("📤 Upload Biodiversity Data", type=['csv', 'xlsx'])
+    input_method = st.radio("Select Input Method:", ["📤 Upload CSV", "✍️ Manual Entry"], key="biodiv_input_method")
 
-    if uploaded_file:
-        try:
-            if uploaded_file.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
+    # Default table structure
+    default_df = pd.DataFrame({
+        "Species": [f"Species {i+1}" for i in range(5)],
+        "Count": [0]*5
+    })
 
-            st.write("### 📄 Uploaded Data", df.head())
+    # ---------------- Manual Entry ----------------
+    if input_method == "✍️ Manual Entry":
 
-            if not all(col in df.columns for col in ["Species", "Abundance"]):
-                st.error("⚠️ Columns must include 'Species' and 'Abundance'")
-                return
+        if "biodiv_data" not in st.session_state:
+            st.session_state.biodiv_data = default_df.copy()
+            st.session_state.biodiv_key = f"biodiv_{random.randint(1000,9999)}"
 
-            total_abundance = df["Abundance"].sum()
-            df["Proportion"] = df["Abundance"] / total_abundance
+        # Clear All
+        if st.button("🧹 Clear All Inputs"):
+            st.session_state.biodiv_data = default_df.copy()
+            st.session_state.biodiv_key = f"biodiv_{random.randint(1000,9999)}"
+            st.rerun()
 
-            # Shannon-Wiener Index (H')
-            shannon_index = -np.sum(df["Proportion"] * np.log(df["Proportion"]))
+        # Editable Table
+        edited_df = st.data_editor(
+            st.session_state.biodiv_data,
+            num_rows="dynamic",
+            use_container_width=True,
+            key=st.session_state.biodiv_key
+        )
 
-            # Simpson's Index (D)
-            simpson_index = np.sum(df["Proportion"] ** 2)
+        if st.button("✅ Apply Data"):
+            st.session_state.biodiv_data = edited_df.copy()
+            st.success("✅ Data applied")
 
-            # Evenness
-            species_count = df.shape[0]
-            evenness = shannon_index / np.log(species_count)
+        df = st.session_state.biodiv_data.copy()
 
-            st.markdown(f"""
-            #### 📌 Biodiversity Indices:
-            - **Shannon-Wiener Index (H')**: `{shannon_index:.4f}`
-            - **Simpson’s Index (D)**: `{simpson_index:.4f}`
-            - **Evenness (E)**: `{evenness:.4f}`
-            """)
-
-            st.bar_chart(df.set_index("Species")["Abundance"])
-
-            # Download Results
-            df["Shannon"] = df["Proportion"] * np.log(df["Proportion"])
-            csv = df.to_csv(index=False).encode("utf-8")
-            st.download_button("📥 Download Analysis CSV", csv, "biodiversity_analysis.csv")
-
-        except Exception as e:
-            st.error(f"⚠️ Error: {e}")
+    # ---------------- File Upload ----------------
     else:
-        st.info("Please upload species data to begin.")
+        uploaded = st.file_uploader("Upload CSV with 'Species' and 'Count'", type=["csv"], key="biodiv_upload")
+
+        if uploaded:
+            try:
+                df = pd.read_csv(uploaded)
+                st.write("📄 Uploaded Data", df)
+
+                if st.button("🧹 Clear Uploaded File"):
+                    del st.session_state["biodiv_upload"]
+                    st.rerun()
+
+            except Exception as e:
+                st.error(f"❌ File error: {e}")
+                return
+        else:
+            st.info("Upload a valid CSV to proceed.")
+            return
+
+    # ---------------- Calculations ----------------
+    try:
+        df.dropna(inplace=True)
+        df["Count"] = df["Count"].astype(int)
+
+        N = df["Count"].sum()
+        df["pi"] = df["Count"] / N
+        df["pi_ln_pi"] = df["pi"] * np.log(df["pi"])
+        df["pi_sq"] = df["pi"] ** 2
+
+        shannon = -df["pi_ln_pi"].sum()
+        simpson = 1 - df["pi_sq"].sum()
+        S = len(df)
+        evenness = shannon / np.log(S) if S > 1 else 0
+
+        st.markdown(f"""
+        ### 📊 Biodiversity Metrics
+        - **Shannon Index (H’)**: `{shannon:.3f}`
+        - **Simpson Index (1 - D)**: `{simpson:.3f}`
+        - **Evenness (J)**: `{evenness:.3f}`
+        """)
+
+        # Bar Chart
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.bar(df["Species"], df["Count"], color="forestgreen")
+        ax.set_title("Species Abundance")
+        ax.set_xlabel("Species")
+        ax.set_ylabel("Count")
+        plt.xticks(rotation=30)
+        st.pyplot(fig)
+
+        # PNG Export
+        png_buf = io.BytesIO()
+        fig.savefig(png_buf, format="png")
+        st.download_button("📥 Download Chart as PNG", png_buf.getvalue(), file_name="biodiversity_chart.png")
+
+        # CSV Export
+        csv_buf = io.StringIO()
+        df.to_csv(csv_buf, index=False)
+        st.download_button("📄 Download Table as CSV", csv_buf.getvalue(), file_name="biodiversity_data.csv")
+
+    except Exception as e:
+        st.error(f"⚠️ Calculation error: {e}")
