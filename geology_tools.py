@@ -7,12 +7,6 @@ import io
 def grain_size_analysis():
     st.subheader("🪨 Grain Size Analysis (Folk & Ward Method)")
 
-    # Clear session data if requested
-    if st.button("🧹 Clear All Inputs & Outputs"):
-        for key in st.session_state.keys():
-            del st.session_state[key]
-        st.experimental_rerun()
-
     option = st.radio("Select Input Method:", ["📤 Upload CSV/Excel", "✍️ Manual Entry"], key="input_method")
 
     if option == "📤 Upload CSV/Excel":
@@ -42,6 +36,12 @@ def grain_size_analysis():
 
         df = st.data_editor(st.session_state.manual_data, num_rows="fixed", use_container_width=True, key="manual_table")
         df.dropna(inplace=True)
+
+        # ✅ Move clear button below manual table
+        if st.button("🧹 Clear All Inputs & Outputs"):
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            st.rerun()
 
     try:
         size = df["Grain Size (mm)"].astype(float).values
