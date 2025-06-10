@@ -108,6 +108,16 @@ def qfl_and_mia_tool():
                 df.columns = [col.strip().lower() for col in df.columns]
                 if 'q' in df.columns and 'f' in df.columns and 'l' in df.columns:
                     # Process data for QFL and MIA calculation
+                    # Create a new DataFrame with only Q, F, and L columns
+                    qfl_data = df[['q', 'f', 'l']].copy()
+                    qfl_data.columns = ['Q', 'F', 'L']
+                    qfl_data.to_csv('QFL_data.csv', index=False)
+
+                    st.write("### Generated QFL Data (Downloadable)")
+                    st.dataframe(qfl_data)
+                    st.download_button("Download QFL Data", data=qfl_data.to_csv(index=False), file_name="QFL_data.csv")
+
+                    # Calculate MIA, Plot QFL and Qp/(F+L) for each row
                     for index, row in df.iterrows():
                         q, k, p, f, l = row['q'], row['k'], row['p'], row['f'], row['l']
                         mia = mia_calculation(q, k, p)
