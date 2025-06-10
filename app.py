@@ -11,6 +11,9 @@ from ai_tools import ai_prediction_tool
 from visual_3d_tools import visual_3d_tool
 from footer import footer
 
+# QFL & MIA Tool import
+from qfl_mia_tool import qfl_and_mia_tool  # Assuming you saved it in qfl_mia_tool.py
+
 # Optional Lottie
 from streamlit_lottie import st_lottie
 import requests
@@ -43,7 +46,8 @@ with st.sidebar:
         "🌊 Coastal Tools",
         "📊 General Tools",
         "🤖 AI Predictions",
-        "🧬 3D Visualization"
+        "🧬 3D Visualization",
+        "📊 QFL & MIA Tool"  # Added QFL tool here
     ])
 
     st.markdown("---")
@@ -89,6 +93,8 @@ elif module == "🤖 AI Predictions":
     ai_prediction_tool()
 elif module == "🧬 3D Visualization":
     visual_3d_tool()
+elif module == "📊 QFL & MIA Tool":  # Add new module to the routing
+    qfl_and_mia_tool()  # Calling the QFL and MIA tool
 
 # Footer
 footer()
