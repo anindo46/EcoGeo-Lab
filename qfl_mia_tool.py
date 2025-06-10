@@ -2,7 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
-import io
 
 # Function to calculate MIA
 def calculate_mia(q, k, p):
@@ -22,7 +21,7 @@ def qfl_and_mia_tool():
             else:
                 df = pd.read_excel(uploaded_file)
 
-            # Display the uploaded CSV Data
+            # Display the uploaded CSV Data (preview)
             st.write("### Data Preview", df.head())
 
             # Ensure the CSV contains the required columns 'Q', 'F', and 'L'
@@ -47,12 +46,16 @@ def qfl_and_mia_tool():
             ax.legend(loc="best")
             st.pyplot(fig)
 
-            # Allow the user to download the result
+            # Allow the user to download the result as a CSV file
             csv = df.to_csv(index=False)
             st.download_button("📥 Download Result as CSV", csv, file_name="qfl_mia_results.csv")
 
         except Exception as e:
             st.error(f"❌ Error reading file: {e}")
-
     else:
         st.info("Please upload a CSV file containing 'Q', 'F', and 'L' values to proceed.")
+
+    # Next Button
+    if st.button("Next"):
+        st.success("Proceeding to the next steps...")
+        # You can implement the next steps here, like showing more results or further processing.
