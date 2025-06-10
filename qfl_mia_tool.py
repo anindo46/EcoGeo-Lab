@@ -1,61 +1,54 @@
-import streamlit as st
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import io
 
-# Define function for the next step
-def process_next_step(df):
-    # Example of what happens next
-    st.write("### Step 2: Perform Calculations and Visualization")
-
-    # Extracting necessary columns for MIA (this is just an example, modify as needed)
-    for index, row in df.iterrows():
-        q = row['Q']
-        f = row['F']
-        l = row['L']
-        # You can calculate MIA here or do any other processing required
-        mia = (q / (q + (f + l))) * 100  # Placeholder for MIA calculation
-        st.markdown(f"Sample {row['Sample Name']} - MIA: {mia:.2f}%")
+# Function to calculate QFL and MIA
+def qfl_and_mia_tool(df):
+    # Ensure Q, F, L columns are present
+    required_columns = ['Q', 'F', 'L']
     
-    # For example, let's assume we want to plot QFL here
-    st.write("### Example of QFL Diagram")
-
-    # Plotting or other calculations go here (you can integrate QFL plotting or other things)
-
-# Page Config
-st.set_page_config(
-    page_title="EcoGeo Lab | Data Processing",
-    layout="wide",
-)
-
-# File upload section
-st.title("🌍 EcoGeo Lab - Grain Counting and Analysis")
-st.markdown("Upload your grain counting data file below:")
-
-uploaded_file = st.file_uploader("Upload your CSV file", type=['csv'])
-
-if uploaded_file:
-    # Read the file
-    df = pd.read_csv(uploaded_file)
-
-    # Display file preview
-    st.write("### Data Preview:")
-    st.dataframe(df.head())
-
-    # Check if the file contains the required columns
-    required_columns = ['Sample Name', 'Q', 'F', 'L']  # Ensure these columns exist
     if all(col in df.columns for col in required_columns):
-        # Extract and prepare the data
-        processed_data = df[required_columns]
+        # Q, F, L values from the uploaded CSV
+        q = df['Q'].values
+        f = df['F'].values
+        l = df['L'].values
+        
+        # Calculate the MIA (Mineralogical Index of Alteration)
+        mia = (q / (q + (f + l))) * 100
+        
+        # Adding the MIA as a new column
+        df['MIA'] = mia
+        
+        # Plot QFL diagram
+        fig, ax = plt.subplots(figsize=(6, 6))
+        
+        # Simple triangular plot for QFL diagram
+        ax.plot([0.5, 1], [0, 0.5], color='black', lw=1)  # Q axis line
+        ax.plot([0, 0.5], [0.5, 0], color='black', lw=1)  # F axis line
+        ax.plot([1, 0.5], [0, 1], color='black', lw=1)    # L axis line
 
-        # Display the processed data
-        st.write("### Processed Data:")
-        st.dataframe(processed_data)
+        # Scatter plot of the points based on the Q, F, L values
+        ax.scatter(q, f, c=mia, cmap='viridis', edgecolors='k', s=60)
 
-        # Next button to move to the next step
-        if st.button("Next"):
-            process_next_step(processed_data)
+        # Labeling the axes
+        ax.set_xlabel("Q (Quartz)")
+        ax.set_ylabel("F (Feldspar)")
+        ax.set_title("QFL Plot")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        
+        # Show the color bar for MIA values
+        cbar = plt.colorbar(ax.collections[0], ax=ax)
+        cbar.set_label('MIA (%)')
 
+        # Save the plot to a BytesIO object
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png")
+        buf.seek(0)
+        
+        # Return the updated dataframe with MIA and the plot as a buffer
+        return df, buf
     else:
-        st.error("❌ The uploaded CSV must contain the columns: 'Sample Name', 'Q', 'F', 'L'.")
-else:
-    st.info("Please upload a CSV file to get started.")
+        raise ValueError("CSV must contain columns: 'Q', 'F', and 'L'")
+
