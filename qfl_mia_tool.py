@@ -107,14 +107,15 @@ def qfl_and_mia_tool():
                 else:
                     df = pd.read_excel(uploaded_file)
 
-                # Show data preview
+                # Show data preview and clean column names
                 st.write("### Data Preview", df.head())
 
-                # Check for required columns
-                if "Quartz" in df.columns and "Feldspar" in df.columns and "Lithics" in df.columns:
+                # Checking the columns and standardize them
+                df.columns = [col.strip().lower() for col in df.columns]
+                if 'quartz' in df.columns and 'feldspar' in df.columns and 'lithics' in df.columns:
                     # Process data for QFL and MIA calculation
                     for index, row in df.iterrows():
-                        q, f, l = row['Quartz'], row['Feldspar'], row['Lithics']
+                        q, f, l = row['quartz'], row['feldspar'], row['lithics']
                         mia = mia_calculation(q, f, l)
                         st.markdown(f"### MIA (Mineralogical Index of Alteration) for Row {index}: {mia:.2f}")
                         qfl_plot(q, f, l)
