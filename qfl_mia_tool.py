@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import streamlit as st
 import io
 
 # Function to calculate MIA
@@ -55,4 +56,3 @@ def qfl_and_mia_tool():
 
     else:
         st.info("Please upload a CSV file containing 'Q', 'F', and 'L' values to proceed.")
-
