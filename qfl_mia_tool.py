@@ -55,34 +55,36 @@ def qp_fl_plot(q, f, l):
 def qfl_and_mia_tool():
     st.title("📊 QFL Diagram and MIA Calculation")
 
-    # Provide instructions and usage example
-    st.markdown("""
-    ### 📝 **How to Use the QFL & MIA Tool:**
-    1. **Manual Input**: Input the percentages of **Quartz (Q)**, **Feldspar (F)**, and **Lithics (L)** directly.
-    2. **File Upload**: Alternatively, you can upload a **CSV/Excel file** that contains the columns: `Quartz`, `Feldspar`, and `Lithics`.
-    3. The tool will automatically generate:
-       - **QFL Diagram**: A triangular plot visualizing the proportions of Quartz, Feldspar, and Lithics.
-       - **MIA (Mineralogical Index of Alteration)**: A value representing the degree of weathering based on the proportions of Feldspar and Lithics.
-       - **Qp/(F+L) Plot**: A plot correlating weathering with the Q/(F+L) ratio.
-    
-    ### 🔎 **Real-Life Example**:
-    Let's say you have a sediment sample with the following values:
-    - Quartz (Q) = 60%
-    - Feldspar (F) = 25%
-    - Lithics (L) = 15%
-    
-    Based on this input, the tool will:
-    1. Plot a **QFL Diagram** showing the proportion of these minerals.
-    2. Calculate the **MIA** as:
-    \[
-    \text{MIA} = \frac{{F + L}}{{Q + F + L}} = \frac{{25 + 15}}{{60 + 25 + 15}} = \frac{{40}}{{100}} = 0.40
-    \]
-    The result will be shown as: **MIA = 0.40**.
-    3. Generate a **Qp/(F+L) Plot** showing the correlation between weathering and mineral composition.
-    
-    --- 
-    """, unsafe_allow_html=True)
+    # Add collapsible 'How to Use' section
+    with st.expander("📘 How to Use (Example: QFL & MIA Calculation)"):
+        st.markdown("""
+        ### 📝 **How to Use the QFL & MIA Tool**:
+        1. **Manual Input**: Enter the percentages of **Quartz (Q)**, **Feldspar (F)**, and **Lithics (L)** directly in the input fields below.
+        2. **File Upload**: You can also upload a **CSV/Excel file** containing the columns: `Quartz`, `Feldspar`, and `Lithics`.
+        3. The tool will generate:
+            - **QFL Diagram**: A triangular plot showing the proportions of **Quartz**, **Feldspar**, and **Lithics**.
+            - **MIA (Mineralogical Index of Alteration)**: A value representing the degree of weathering based on Feldspar and Lithics.
+            - **Qp/(F+L) Plot**: A plot showing weathering related to the ratio of **Quartz** and **Feldspar + Lithics**.
+        
+        ### 🔎 **Real-Life Example**:
+        - If you have a sediment sample with the following values:
+            - **Quartz (Q)** = 60%
+            - **Feldspar (F)** = 25%
+            - **Lithics (L)** = 15%
+        
+        - The tool will:
+            1. Plot the **QFL Diagram** showing these proportions.
+            2. Calculate the **MIA** value:
+            \[
+            \text{MIA} = \frac{{F + L}}{{Q + F + L}} = \frac{{25 + 15}}{{60 + 25 + 15}} = 0.40
+            \]
+            The **MIA** will be displayed as `MIA = 0.40`.
+            3. Generate a **Qp/(F+L) Plot** showing the correlation between weathering and mineral composition.
+        
+        ### 💡 **Tip**: Make sure your data has the required columns for proper analysis.
+        """, unsafe_allow_html=True)
 
+    # Choose Input Method: Upload CSV or Manual Entry
     input_method = st.radio("Select Input Method", ["📤 Upload CSV/Excel", "✍️ Manual Entry"])
 
     if input_method == "✍️ Manual Entry":
