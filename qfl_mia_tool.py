@@ -1,54 +1,58 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import io
 
-# Function to calculate QFL and MIA
-def qfl_and_mia_tool(df):
-    # Ensure Q, F, L columns are present
-    required_columns = ['Q', 'F', 'L']
-    
-    if all(col in df.columns for col in required_columns):
-        # Q, F, L values from the uploaded CSV
-        q = df['Q'].values
-        f = df['F'].values
-        l = df['L'].values
-        
-        # Calculate the MIA (Mineralogical Index of Alteration)
-        mia = (q / (q + (f + l))) * 100
-        
-        # Adding the MIA as a new column
-        df['MIA'] = mia
-        
-        # Plot QFL diagram
-        fig, ax = plt.subplots(figsize=(6, 6))
-        
-        # Simple triangular plot for QFL diagram
-        ax.plot([0.5, 1], [0, 0.5], color='black', lw=1)  # Q axis line
-        ax.plot([0, 0.5], [0.5, 0], color='black', lw=1)  # F axis line
-        ax.plot([1, 0.5], [0, 1], color='black', lw=1)    # L axis line
+# Function to calculate MIA
+def calculate_mia(q, k, p):
+    """Calculate MIA using the formula: MIA = (Q / (Q + (K + P))) * 100"""
+    return (q / (q + (k + p))) * 100
 
-        # Scatter plot of the points based on the Q, F, L values
-        ax.scatter(q, f, c=mia, cmap='viridis', edgecolors='k', s=60)
+# Function to process CSV and perform QFL & MIA calculations
+def qfl_and_mia_tool():
+    # File Upload
+    uploaded_file = st.file_uploader("Upload your CSV with 'Q', 'F', and 'L' values", type=['csv', 'xlsx'], key="upload_file")
 
-        # Labeling the axes
-        ax.set_xlabel("Q (Quartz)")
-        ax.set_ylabel("F (Feldspar)")
-        ax.set_title("QFL Plot")
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
-        
-        # Show the color bar for MIA values
-        cbar = plt.colorbar(ax.collections[0], ax=ax)
-        cbar.set_label('MIA (%)')
+    if uploaded_file:
+        try:
+            # Read the uploaded CSV file
+            if uploaded_file.name.endswith('.csv'):
+                df = pd.read_csv(uploaded_file)
+            else:
+                df = pd.read_excel(uploaded_file)
 
-        # Save the plot to a BytesIO object
-        buf = io.BytesIO()
-        plt.savefig(buf, format="png")
-        buf.seek(0)
-        
-        # Return the updated dataframe with MIA and the plot as a buffer
-        return df, buf
+            # Display the uploaded CSV Data
+            st.write("### Data Preview", df.head())
+
+            # Ensure the CSV contains the required columns 'Q', 'F', and 'L'
+            if 'Q' not in df.columns or 'F' not in df.columns or 'L' not in df.columns:
+                st.error("⚠️ Please ensure the CSV contains 'Q', 'F', and 'L' columns.")
+                return
+
+            # Extract necessary columns
+            df['Q'] = df['Q'].astype(float)
+            df['F'] = df['F'].astype(float)
+            df['L'] = df['L'].astype(float)
+
+            # Calculate MIA for each row
+            df['MIA'] = calculate_mia(df['Q'], df['F'], df['L'])
+            
+            # Generate QFL diagram
+            fig, ax = plt.subplots(figsize=(8, 6))
+            ax.plot(df['Q'], df['F'], label="Q vs F")
+            ax.plot(df['F'], df['L'], label="F vs L")
+            ax.set_xlabel("Quartz (Q)")
+            ax.set_ylabel("Feldspar (F) / Lithics (L)")
+            ax.legend(loc="best")
+            st.pyplot(fig)
+
+            # Allow the user to download the result
+            csv = df.to_csv(index=False)
+            st.download_button("📥 Download Result as CSV", csv, file_name="qfl_mia_results.csv")
+
+        except Exception as e:
+            st.error(f"❌ Error reading file: {e}")
+
     else:
-        raise ValueError("CSV must contain columns: 'Q', 'F', and 'L'")
+        st.info("Please upload a CSV file containing 'Q', 'F', and 'L' values to proceed.")
 
