@@ -1,6 +1,20 @@
 import streamlit as st
+from PIL import Image
 import pandas as pd
-from qfl_mia_tool import qfl_and_mia_tool  # Ensure qfl_mia_tool.py is correctly imported
+from footer import footer  # Ensure this import is correct
+
+# Optional Lottie
+from streamlit_lottie import st_lottie
+import requests
+
+# QFL & MIA Tool import
+from qfl_mia_tool import qfl_and_mia_tool  # Ensure this import works, qfl_mia_tool.py must exist
+
+def load_lottie_url(url):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
 
 # Page Config
 st.set_page_config(
@@ -37,7 +51,11 @@ with st.sidebar:
 def display_home():
     col1, col2 = st.columns([1, 2])
     with col1:
-        st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
+        lottie = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_w98qte06.json")
+        if lottie:
+            st_lottie(lottie, speed=1, loop=True, height=250)
+        else:
+            st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
     with col2:
         st.markdown("<h1 style='color:#4B8BBE;'>Welcome to EcoGeo Lab</h1>", unsafe_allow_html=True)
         st.markdown("""
