@@ -47,7 +47,7 @@ with st.sidebar:
         "📊 General Tools",
         "🤖 AI Predictions",
         "🧬 3D Visualization",
-        "📊 QFL & MIA Tool"
+        "📊 QFL & MIA Tool"  # Added QFL tool here
     ])
 
     st.markdown("---")
@@ -55,7 +55,7 @@ with st.sidebar:
     <p style='font-size:14px; color:#666;'>💡 Tip: Upload CSV or Excel data for each module</p>
     """, unsafe_allow_html=True)
 
-# Home Page Function
+# Home Page
 def display_home():
     col1, col2 = st.columns([1, 2])
     with col1:
@@ -66,8 +66,8 @@ def display_home():
             st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
     with col2:
         st.markdown("<h1 style='color:#4B8BBE;'>Welcome to EcoGeo Lab</h1>", unsafe_allow_html=True)
-        st.markdown("""<p style='font-size:18px;'>Your all-in-one smart science lab for Geology, Soil, Botany, and Coastal Research.</p>""", unsafe_allow_html=True)
         st.markdown("""
+        <p style='font-size:18px;'>Your all-in-one smart science lab for Geology, Soil, Botany, and Coastal Research.</p>
         <ul>
             <li>📁 Upload datasets easily</li>
             <li>📊 Get instant analysis & plots</li>
@@ -93,7 +93,7 @@ elif module == "🤖 AI Predictions":
     ai_prediction_tool()
 elif module == "🧬 3D Visualization":
     visual_3d_tool()
-elif module == "📊 QFL & MIA Tool":
+elif module == "📊 QFL & MIA Tool":  # Add new module to the routing
     qfl_and_mia_tool()  # Calling the QFL and MIA tool
 
 # Footer
