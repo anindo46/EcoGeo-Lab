@@ -66,7 +66,7 @@ def display_home():
             st.image("https://raw.githubusercontent.com/anindo46/MyProjects/refs/heads/main/pngwing.com.png", width=200)
     with col2:
         st.markdown("<h1 style='color:#4B8BBE;'>Welcome to EcoGeo Lab</h1>", unsafe_allow_html=True)
-        st.markdown("""
+        st.markdown(""" 
         <p style='font-size:18px;'>Your all-in-one smart science lab for Geology, Soil, Botany, and Coastal Research.</p>
         <ul>
             <li>📁 Upload datasets easily</li>
@@ -75,6 +75,49 @@ def display_home():
         </ul>
         """, unsafe_allow_html=True)
     st.success("👈 Select a tool from the sidebar to get started!")
+
+# QFL Tool
+def qfl_tool():
+    st.title("📊 QFL & MIA Tool")
+    
+    st.markdown("""
+    <p style='font-size:18px;'>This tool allows you to upload a CSV containing 'Q', 'F', and 'L' values. We will then generate a QFL diagram and calculate the MIA (Mineralogical Index of Alteration).</p>
+    """, unsafe_allow_html=True)
+    
+    st.subheader("📤 Upload CSV File")
+    uploaded_file = st.file_uploader("Upload your CSV file containing 'Q', 'F', and 'L' values.", type="csv")
+    
+    if uploaded_file is not None:
+        # Preview the uploaded file
+        df = pd.read_csv(uploaded_file)
+        st.write("### Data Preview", df.head())
+        
+        # Ensure that required columns are present
+        required_columns = ['Q', 'F', 'L']
+        if all(col in df.columns for col in required_columns):
+            st.success("✅ File has required columns: 'Q', 'F', and 'L'.")
+            
+            # Calculate MIA and plot QFL diagram
+            df, plot_buffer = qfl_and_mia_tool(df)  # Get the processed data and plot
+            
+            # Display Results
+            st.write("### Results (with MIA)")
+            st.write(df)
+            
+            # Show the QFL plot
+            st.image(plot_buffer)
+            
+            # Button to download the plot as PNG
+            st.download_button(
+                label="Download QFL Plot as PNG",
+                data=plot_buffer,
+                file_name="qfl_plot.png",
+                mime="image/png"
+            )
+        else:
+            st.error("❌ Please ensure the CSV contains 'Q', 'F', and 'L' columns.")
+    else:
+        st.info("Please upload a CSV file.")
 
 # Module Routing
 if module == "🏠 Home":
@@ -94,7 +137,7 @@ elif module == "🤖 AI Predictions":
 elif module == "🧬 3D Visualization":
     visual_3d_tool()
 elif module == "📊 QFL & MIA Tool":  # Add new module to the routing
-    qfl_and_mia_tool()  # Calling the QFL and MIA tool
+    qfl_tool()  # Calling the QFL and MIA tool
 
 # Footer
 footer()
