@@ -3,10 +3,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# QFL Plot
+# MIA Calculation (Updated)
+def mia_calculation(q, k, p):
+    mia = (q / (q + (k + p))) * 100
+    return mia
+
+# QFL Plot (Dummy function for now, please adjust as necessary)
 def qfl_plot(q, f, l):
     fig, ax = plt.subplots(figsize=(8, 8))
-
     # Define the QFL triangle boundaries
     triangle = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     ax.fill(triangle[:,0], triangle[:,1], 'lightgrey', lw=2, zorder=0)
@@ -15,12 +19,6 @@ def qfl_plot(q, f, l):
     # Plotting QFL points
     ax.scatter(q, f, color="blue", label="QFL Data", s=60, zorder=1)
 
-    # Annotating the diagram
-    ax.text(0.5, 1.02, 'Quartz', ha='center', va='center', fontweight='bold', fontsize=12)
-    ax.text(1.02, 0.5, 'Feldspar', ha='center', va='center', fontweight='bold', fontsize=12)
-    ax.text(0, -0.05, 'Lithics', ha='center', va='center', fontweight='bold', fontsize=12)
-
-    # Title
     ax.set_title('QFL Diagram')
     ax.set_aspect('equal')
     ax.set_xticks([])
@@ -29,13 +27,7 @@ def qfl_plot(q, f, l):
     plt.show()
     st.pyplot(fig)
 
-# MIA Calculation
-def mia_calculation(q, f, l):
-    total = q + f + l
-    mia = (f + l) / total
-    return mia
-
-# Qp/(F+L) Plot
+# Qp/(F+L) Plot (Dummy function for now, please adjust as necessary)
 def qp_fl_plot(q, f, l):
     x = q / (f + l)
     y = (f + l) / (q + f + l)
@@ -58,7 +50,7 @@ def qfl_and_mia_tool():
         st.markdown("""
         ### 📝 **How to Use the QFL & MIA Tool**:
         1. **Manual Input**: Enter the percentages of **Quartz (Q)**, **Feldspar (F)**, and **Lithics (L)** directly in the input fields below.
-        2. **File Upload**: You can also upload a **CSV/Excel file** containing the columns: `Quartz`, `Feldspar`, and `Lithics`.
+        2. **File Upload**: You can also upload a **CSV/Excel file** containing the columns: `Qm`, `Qp`, `K`, `P`, `Lm`, `Ls`, and `Lv`.
         3. The tool will generate:
             - **QFL Diagram**: A triangular plot showing the proportions of **Quartz**, **Feldspar**, and **Lithics**.
             - **MIA (Mineralogical Index of Alteration)**: A value representing the degree of weathering based on Feldspar and Lithics.
@@ -86,19 +78,21 @@ def qfl_and_mia_tool():
     input_method = st.radio("Select Input Method", ["📤 Upload CSV/Excel", "✍️ Manual Entry"])
 
     if input_method == "✍️ Manual Entry":
-        st.markdown("### ✍️ Enter your Q, F, and L values")
-        q = st.number_input("Quartz (%)", min_value=0, max_value=100, value=50)
+        st.markdown("### ✍️ Enter your Qm, Qp, K, P, Lm, Ls, and Lv values")
+        q = st.number_input("Qm (%)", min_value=0, max_value=100, value=50)
+        k = st.number_input("Potassium Feldspar (K%)", min_value=0, max_value=100, value=20)
+        p = st.number_input("Plagioclase Feldspar (P%)", min_value=0, max_value=100, value=30)
         f = st.number_input("Feldspar (%)", min_value=0, max_value=100, value=30)
         l = st.number_input("Lithics (%)", min_value=0, max_value=100, value=20)
 
         # Calculate and plot QFL diagram and MIA
-        mia = mia_calculation(q, f, l)
+        mia = mia_calculation(q, k, p)
         st.markdown(f"### MIA (Mineralogical Index of Alteration): {mia:.2f}")
         qfl_plot(q, f, l)
         qp_fl_plot(q, f, l)
 
     elif input_method == "📤 Upload CSV/Excel":
-        uploaded_file = st.file_uploader("Upload CSV or Excel file with Q, F, and L data", type=["csv", "xlsx"])
+        uploaded_file = st.file_uploader("Upload CSV or Excel file with Qm, Qp, K, P, Lm, Ls, and Lv data", type=["csv", "xlsx"])
 
         if uploaded_file:
             try:
@@ -112,16 +106,16 @@ def qfl_and_mia_tool():
 
                 # Checking the columns and standardize them
                 df.columns = [col.strip().lower() for col in df.columns]
-                if 'quartz' in df.columns and 'feldspar' in df.columns and 'lithics' in df.columns:
+                if 'q' in df.columns and 'f' in df.columns and 'l' in df.columns:
                     # Process data for QFL and MIA calculation
                     for index, row in df.iterrows():
-                        q, f, l = row['quartz'], row['feldspar'], row['lithics']
-                        mia = mia_calculation(q, f, l)
+                        q, k, p, f, l = row['q'], row['k'], row['p'], row['f'], row['l']
+                        mia = mia_calculation(q, k, p)
                         st.markdown(f"### MIA (Mineralogical Index of Alteration) for Row {index}: {mia:.2f}")
                         qfl_plot(q, f, l)
                         qp_fl_plot(q, f, l)
                 else:
-                    st.error("❌ Please ensure the CSV contains 'Quartz', 'Feldspar', and 'Lithics' columns.")
+                    st.error("❌ Please ensure the CSV contains 'Q', 'F', and 'L' columns.")
 
             except Exception as e:
                 st.error(f"❌ Error: {e}")
