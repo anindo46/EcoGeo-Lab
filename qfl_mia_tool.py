@@ -107,10 +107,12 @@ def qfl_and_mia_tool():
                 else:
                     df = pd.read_excel(uploaded_file)
 
+                # Show data preview
                 st.write("### Data Preview", df.head())
 
-                # Assuming the CSV/Excel has Q, F, and L columns
+                # Check for required columns
                 if "Quartz" in df.columns and "Feldspar" in df.columns and "Lithics" in df.columns:
+                    # Process data for QFL and MIA calculation
                     for index, row in df.iterrows():
                         q, f, l = row['Quartz'], row['Feldspar'], row['Lithics']
                         mia = mia_calculation(q, f, l)
@@ -118,7 +120,7 @@ def qfl_and_mia_tool():
                         qfl_plot(q, f, l)
                         qp_fl_plot(q, f, l)
                 else:
-                    st.error("Please ensure the CSV has 'Quartz', 'Feldspar', and 'Lithics' columns.")
+                    st.error("❌ Please ensure the CSV contains 'Quartz', 'Feldspar', and 'Lithics' columns.")
 
             except Exception as e:
                 st.error(f"❌ Error: {e}")
