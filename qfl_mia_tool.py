@@ -8,7 +8,7 @@ def mia_calculation(q, k, p):
     mia = (q / (q + (k + p))) * 100
     return mia
 
-# QFL Plot (Dummy function for now, please adjust as necessary)
+# QFL Plot
 def qfl_plot(q, f, l):
     fig, ax = plt.subplots(figsize=(8, 8))
     # Define the QFL triangle boundaries
@@ -27,7 +27,7 @@ def qfl_plot(q, f, l):
     plt.show()
     st.pyplot(fig)
 
-# Qp/(F+L) Plot (Dummy function for now, please adjust as necessary)
+# Qp/(F+L) Plot
 def qp_fl_plot(q, f, l):
     x = q / (f + l)
     y = (f + l) / (q + f + l)
