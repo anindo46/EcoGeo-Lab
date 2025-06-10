@@ -12,7 +12,7 @@ from visual_3d_tools import visual_3d_tool
 from footer import footer
 
 # QFL & MIA Tool import
-from qfl_mia_tool import qfl_and_mia_tool  # Assuming you saved it in qfl_mia_tool.py
+from qfl_mia_tool import qfl_and_mia_tool  # Ensure this import works, qfl_mia_tool.py must exist
 
 # Optional Lottie
 from streamlit_lottie import st_lottie
