@@ -87,9 +87,6 @@ def qfl_and_mia_tool():
     inject_css()
     st.header("🔍 QFL & MIA Tool")
 
-
-
-
     with st.expander("📘 How to Use This Tool"):
         st.markdown("""
     ### 🔹 Available Input Options:
@@ -113,10 +110,8 @@ def qfl_and_mia_tool():
     - Weathering Climate
     - Sandstone Classification
 
-    **📥 Download** results after processing, including Q, F, L and MIA.
+    **📅 Download** results after processing, including Q, F, L and MIA.
     """)
-
-
 
     input_type = st.radio("Choose Input Type:", ["🔬 Full Mineral Data (Qm, Qp, K, P, etc.)", "📊 Direct Q-F-L Values"])
 
@@ -177,17 +172,53 @@ def qfl_and_mia_tool():
         st.success("✅ QFL & MIA Calculated")
         st.dataframe(df, use_container_width=True)
 
-        for i, row in df.iterrows():
-            st.info(f"Sample {i+1}: Q = {row['q']:.2f}, F = {row['f']:.2f}, L = {row['l']:.2f}")
+        # 🔹 Total/Average Summary
+        total_q = df["q"].sum()
+        total_f = df["f"].sum()
+        total_l = df["l"].sum()
+        average_mia = df["mia"].mean()
 
-        st.markdown("### 🧠 MIA Interpretation")
-        for i, row in df.iterrows():
-            mia = row.get("mia", 0)
-            st.warning(f"Sample {i+1}: MIA = {mia:.2f}% → {interpret_mia(mia)}")
+        st.markdown("### 📊 Total QFL Summary")
+        st.info(f"**Total Quartz (Q):** {total_q:.2f} &nbsp;&nbsp; | &nbsp;&nbsp; **Total Feldspar (F):** {total_f:.2f} &nbsp;&nbsp; | &nbsp;&nbsp; **Total Lithics (L):** {total_l:.2f}")
 
+        st.markdown("### 🧠 Average MIA Interpretation")
+        st.success(f"**Average MIA:** {average_mia:.2f}% → {interpret_mia(average_mia)}")
+
+        # 🔹 MIA Bar Chart with Visual Grade
+        st.markdown("### 📊 MIA Values by Sample")
+
+        def categorize_mia(val):
+            if val > 75:
+                return "High"
+            elif val > 50:
+                return "Moderate"
+            elif val > 25:
+                return "Low"
+            else:
+                return "Very Low"
+
+        df["category"] = df["mia"].apply(categorize_mia)
+        colors = df["category"].map({
+            "Very Low": "#ff6666",
+            "Low": "#ffcc66",
+            "Moderate": "#66ccff",
+            "High": "#66ff66"
+        })
+
+        fig, ax = plt.subplots()
+        ax.bar(df.index + 1, df["mia"], color=colors)
+        ax.set_title("MIA Index by Sample")
+        ax.set_xlabel("Sample")
+        ax.set_ylabel("MIA (%)")
+        ax.set_xticks(df.index + 1)
+        ax.set_ylim(0, 100)
+        st.pyplot(fig)
+
+        # 📅 Download
         csv = df.to_csv(index=False).encode("utf-8")
-        st.download_button("📥 Download Results CSV", csv, file_name="qfl_mia_results.csv")
+        st.download_button("📅 Download Results CSV", csv, file_name="qfl_mia_results.csv")
 
+        # 🔺 Triangle Plot
         st.markdown("### 🔺 QFL Diagram")
         plot_qfl_triangle(df)
 
