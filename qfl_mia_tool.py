@@ -1,61 +1,86 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
 import streamlit as st
+import matplotlib.pyplot as plt
+import io
+import ternary  # Requires python-ternary package
 
-# Function to calculate MIA
-def calculate_mia(q, k, p):
-    """Calculate MIA using the formula: MIA = (Q / (Q + (K + P))) * 100"""
-    return (q / (q + (k + p))) * 100
+def calculate_qfl_components(df):
+    df['Q'] = df['Qm'] + df['Qp']
+    df['F'] = df['K'] + df['P']
+    df['L'] = df['Lm'] + df['Ls'] + df['Lv']
+    return df
 
-# Function to process CSV and perform QFL & MIA calculations
+def calculate_mia(df):
+    df['MIA'] = (df['Q'] / (df['Q'] + df['K'] + df['P'])) * 100
+    return df
+
+def plot_qfl_triangle(data):
+    fig, tax = ternary.figure(scale=100)
+    fig.set_size_inches(6, 6)
+    tax.set_title("QFL Triangle", fontsize=15)
+    tax.boundary(linewidth=2.0)
+    tax.gridlines(color="gray", multiple=10)
+    tax.left_axis_label("F", fontsize=12)
+    tax.right_axis_label("L", fontsize=12)
+    tax.bottom_axis_label("Q", fontsize=12)
+
+    # Plot points
+    for _, row in data.iterrows():
+        total = row['Q'] + row['F'] + row['L']
+        if total > 0:
+            q = row['Q'] / total * 100
+            f = row['F'] / total * 100
+            l = row['L'] / total * 100
+            tax.scatter([(q, f, l)], marker='o', color='blue', label='Sample', s=30)
+
+    tax.ticks(axis='lbr', multiple=10, linewidth=1)
+    tax.clear_matplotlib_ticks()
+    tax.legend()
+    st.pyplot(fig)
+
 def qfl_and_mia_tool():
-    # File Upload
-    uploaded_file = st.file_uploader("Upload your CSV with 'Q', 'F', and 'L' values", type=['csv', 'xlsx'], key="upload_file")
+    st.header("🔍 QFL & MIA Tool")
+    
+    with st.expander("📘 How to Use"):
+        st.markdown("""
+        1. Upload a CSV or enter data manually with columns: `Qm`, `Qp`, `K`, `P`, `Lm`, `Ls`, `Lv`
+        2. Click **Next** to calculate `Q`, `F`, `L` and `MIA`
+        3. View the QFL triangle and download results
+        """)
+        st.markdown("📂 Sample Format:")
+        st.code("Qm, Qp, K, P, Lm, Ls, Lv\n10, 5, 3, 2, 4, 1, 2", language="csv")
 
-    if uploaded_file:
+    input_mode = st.radio("Choose Input Method", ["Upload CSV", "Manual Entry"])
+
+    if input_mode == "Upload CSV":
+        uploaded_file = st.file_uploader("Upload CSV File", type=['csv'])
+        if uploaded_file:
+            df = pd.read_csv(uploaded_file)
+            st.write("### Uploaded Data", df)
+    else:
+        sample_data = pd.DataFrame({
+            "Qm": [10], "Qp": [5], "K": [3], "P": [2],
+            "Lm": [4], "Ls": [1], "Lv": [2]
+        })
+        df = st.data_editor(sample_data, use_container_width=True, num_rows="dynamic", key="manual_editor")
+
+    if 'df' in locals() and st.button("Next"):
         try:
-            # Read the uploaded CSV file
-            if uploaded_file.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
+            df = df.astype(float)
+            df = calculate_qfl_components(df)
+            df = calculate_mia(df)
 
-            # Display the uploaded CSV Data (preview)
-            st.write("### Data Preview", df.head())
+            st.success("✅ Calculation Complete")
 
-            # Ensure the CSV contains the required columns 'Q', 'F', and 'L'
-            if 'Q' not in df.columns or 'F' not in df.columns or 'L' not in df.columns:
-                st.error("⚠️ Please ensure the CSV contains 'Q', 'F', and 'L' columns.")
-                return
+            st.write("### 📊 Result Table", df)
 
-            # Extract necessary columns
-            df['Q'] = df['Q'].astype(float)
-            df['F'] = df['F'].astype(float)
-            df['L'] = df['L'].astype(float)
+            # Download CSV
+            csv = df.to_csv(index=False).encode('utf-8')
+            st.download_button("📥 Download CSV", csv, "qfl_mia_results.csv", "text/csv")
 
-            # Calculate MIA for each row
-            df['MIA'] = calculate_mia(df['Q'], df['F'], df['L'])
-            
-            # Generate QFL diagram
-            fig, ax = plt.subplots(figsize=(8, 6))
-            ax.plot(df['Q'], df['F'], label="Q vs F")
-            ax.plot(df['F'], df['L'], label="F vs L")
-            ax.set_xlabel("Quartz (Q)")
-            ax.set_ylabel("Feldspar (F) / Lithics (L)")
-            ax.legend(loc="best")
-            st.pyplot(fig)
-
-            # Allow the user to download the result as a CSV file
-            csv = df.to_csv(index=False)
-            st.download_button("📥 Download Result as CSV", csv, file_name="qfl_mia_results.csv")
+            # QFL Triangle
+            st.write("### 🔺 QFL Triangle")
+            plot_qfl_triangle(df)
 
         except Exception as e:
-            st.error(f"❌ Error reading file: {e}")
-    else:
-        st.info("Please upload a CSV file containing 'Q', 'F', and 'L' values to proceed.")
-
-    # Next Button
-    if st.button("Next"):
-        st.success("Proceeding to the next steps...")
-        # You can implement the next steps here, like showing more results or further processing.
+            st.error(f"❌ Error: {e}")
