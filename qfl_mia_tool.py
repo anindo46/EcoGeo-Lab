@@ -6,16 +6,10 @@ import ternary
 def inject_css():
     st.markdown("""
         <style>
-        .stButton>button {
+        .stButton>button, .stDownloadButton>button {
             background-color: #009999;
             color: white;
             font-weight: bold;
-            border-radius: 8px;
-            padding: 8px 16px;
-        }
-        .stDownloadButton>button {
-            background-color: #006666;
-            color: white;
             border-radius: 8px;
             padding: 8px 16px;
         }
@@ -46,8 +40,18 @@ def calculate_qfl_components(df):
     return df
 
 def calculate_mia(df):
-    df["mia"] = (df["q"] / (df["q"] + df["k"] + df["p"])) * 100
+    df["mia"] = (df["q"] / (df["q"] + df["k"] + df["p"])) * 100 if "k" in df.columns and "p" in df.columns else (df["q"] / (df["q"] + df["f"])) * 100
     return df
+
+def interpret_mia(value):
+    if value > 75:
+        return "Very high MIA suggests intense chemical weathering and sediment maturity—likely humid climate."
+    elif value > 50:
+        return "Moderate to high MIA suggests recycled sources and semi-humid environments."
+    elif value > 25:
+        return "Moderate MIA implies moderate tectonic input—transitional or semi-arid settings."
+    else:
+        return "Low MIA indicates immature sediments, likely arid climates or tectonically active areas."
 
 def plot_qfl_triangle(data):
     fig, tax = ternary.figure(scale=100)
@@ -58,6 +62,7 @@ def plot_qfl_triangle(data):
     tax.left_axis_label("F", fontsize=12)
     tax.right_axis_label("L", fontsize=12)
     tax.bottom_axis_label("Q", fontsize=12)
+
     for _, row in data.iterrows():
         total = row["q"] + row["f"] + row["l"]
         if total > 0:
@@ -65,19 +70,10 @@ def plot_qfl_triangle(data):
             f = row["f"] / total * 100
             l = row["l"] / total * 100
             tax.scatter([(q, f, l)], marker="o", color="blue", s=30)
+
     tax.ticks(axis='lbr', multiple=10, linewidth=1)
     tax.clear_matplotlib_ticks()
     st.pyplot(fig)
-
-def interpret_mia(value):
-    if value > 75:
-        return "Very high MIA suggests intense chemical weathering and sediment maturity—likely humid climatic influence."
-    elif value > 50:
-        return "Moderate to high MIA suggests recycling and intermediate weathering—possibly semi-humid to humid regions."
-    elif value > 25:
-        return "Low to moderate MIA may imply active tectonic input and less weathered detritus—transitional or semi-arid conditions."
-    else:
-        return "Very low MIA reflects immature sediments and minimal chemical weathering—likely arid conditions or direct arc origin."
 
 def show_reference_diagram(selection):
     diagram_paths = {
@@ -91,70 +87,83 @@ def qfl_and_mia_tool():
     inject_css()
     st.header("🔍 QFL & MIA Tool")
 
-    with st.expander("📘 How to Use"):
-        st.markdown("""
-        - Upload CSV or input manually: `Qm`, `Qp`, `K` or `Feldspar`, `P` or `Mica`, `Lm`, `Ls`, `Lv` or `Lithic Fragment`
-        - Press **Next** to calculate QFL, MIA and see diagrams.
-        - View reference diagrams from dropdown for provenance or climate insight.
-        """)
+    input_type = st.radio("Choose Input Type:", ["🔬 Full Mineral Data (Qm, Qp, K, P, etc.)", "📊 Direct Q-F-L Values"])
 
-    input_mode = st.radio("📥 Choose Input Method", ["Upload CSV", "Manual Entry"])
     df = None
-
-    if input_mode == "Upload CSV":
-        uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
-        if uploaded_file:
-            df = pd.read_csv(uploaded_file)
+    if input_type == "🔬 Full Mineral Data (Qm, Qp, K, P, etc.)":
+        st.subheader("Full Component Input")
+        input_mode = st.radio("Choose Method", ["Upload CSV", "Manual Entry"])
+        if input_mode == "Upload CSV":
+            uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+            if uploaded_file:
+                df = pd.read_csv(uploaded_file)
+                df = standardize_columns(df)
+                st.dataframe(df)
+        else:
+            sample_data = pd.DataFrame({
+                "Qm": [48.4], "Qp": [7.8], "Feldspar": [7.8],
+                "Mica": [5.4], "Lm": [7.6], "Ls": [8], "Lithic Fragment": [0]
+            })
+            df = st.data_editor(sample_data, num_rows="dynamic", use_container_width=True)
             df = standardize_columns(df)
-            st.dataframe(df, use_container_width=True)
-    else:
-        sample_data = pd.DataFrame({
-            "Qm": [48.4, 50.2, 42.4],
-            "Qp": [7.8, 5.8, 7.8],
-            "Feldspar": [7.8, 5.2, 3.8],
-            "Mica": [5.4, 2.4, 4.4],
-            "Lm": [7.6, 7.8, 6.8],
-            "Ls": [8, 5.6, 5.4],
-            "Lithic Fragment": [0, 2, 0]
-        })
-        df = st.data_editor(sample_data, use_container_width=True, num_rows="dynamic", key="manual_input")
-        df = standardize_columns(df)
 
-    if df is not None and st.button("Next"):
-        try:
-            expected = ["qm", "qp", "k", "p", "lm", "ls", "lv"]
-            missing = [col for col in expected if col not in df.columns]
-            if missing:
-                st.error(f"❌ Missing columns: {missing}")
+        if df is not None and st.button("Next"):
+            try:
+                expected = ["qm", "qp", "k", "p", "lm", "ls", "lv"]
+                df[expected] = df[expected].apply(pd.to_numeric, errors="coerce")
+                df.dropna(subset=expected, inplace=True)
+                df = calculate_qfl_components(df)
+                df = calculate_mia(df)
+            except Exception as e:
+                st.error(f"Error: {e}")
                 return
 
-            df[expected] = df[expected].apply(pd.to_numeric, errors="coerce")
-            df.dropna(subset=expected, inplace=True)
+    else:
+        st.subheader("Direct Q-F-L Input")
+        input_mode = st.radio("Choose Method", ["Upload CSV", "Manual Entry"])
+        if input_mode == "Upload CSV":
+            uploaded_file = st.file_uploader("Upload CSV with Q, F, L", type=["csv"])
+            if uploaded_file:
+                df = pd.read_csv(uploaded_file)
+                df.columns = [c.strip().lower() for c in df.columns]
+                st.dataframe(df)
+        else:
+            sample_data = pd.DataFrame({"Q": [60], "F": [30], "L": [10]})
+            df = st.data_editor(sample_data, num_rows="dynamic", use_container_width=True)
 
-            df = calculate_qfl_components(df)
-            df = calculate_mia(df)
+        if df is not None and st.button("Next"):
+            try:
+                df.columns = [c.strip().lower() for c in df.columns]
+                df = df.rename(columns={"q": "q", "f": "f", "l": "l"})
+                df = df[["q", "f", "l"]].apply(pd.to_numeric, errors="coerce")
+                df.dropna(inplace=True)
+                df = calculate_mia(df)
+            except Exception as e:
+                st.error(f"Error: {e}")
+                return
 
-            st.success("✅ QFL & MIA Calculated")
-            st.dataframe(df[["qm", "qp", "k", "p", "lm", "ls", "lv", "q", "f", "l", "mia"]], use_container_width=True)
+    if df is not None and "q" in df.columns and "f" in df.columns and "l" in df.columns:
+        st.success("✅ QFL & MIA Calculated")
+        st.dataframe(df, use_container_width=True)
 
-            st.markdown("### 📌 Highlighted Q, F, L Values")
-            for i, row in df.iterrows():
-                st.info(f"Sample {i+1} ➤ Q = {row['q']:.2f}, F = {row['f']:.2f}, L = {row['l']:.2f}")
+        for i, row in df.iterrows():
+            st.info(f"Sample {i+1}: Q = {row['q']:.2f}, F = {row['f']:.2f}, L = {row['l']:.2f}")
 
-            st.markdown("### 🧠 MIA Interpretation")
-            for i, row in df.iterrows():
-                st.warning(f"Sample {i+1}: MIA = {row['mia']:.2f}% → {interpret_mia(row['mia'])}")
+        st.markdown("### 🧠 MIA Interpretation")
+        for i, row in df.iterrows():
+            mia = row.get("mia", 0)
+            st.warning(f"Sample {i+1}: MIA = {mia:.2f}% → {interpret_mia(mia)}")
 
-            csv = df.to_csv(index=False).encode("utf-8")
-            st.download_button("📥 Download Results CSV", csv, file_name="qfl_mia_results.csv")
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button("📥 Download Results CSV", csv, file_name="qfl_mia_results.csv")
 
-            st.markdown("### 🗺 Reference Diagram Viewer")
-            diagram_choice = st.selectbox("Choose Diagram to View", [
-                "QFL Provenance Diagram",
-                "Weathering Climate Diagram",
-                "Sandstone Classification Diagram"
-            ])
-            show_reference_diagram(diagram_choice)
+        st.markdown("### 🔺 QFL Diagram")
+        plot_qfl_triangle(df)
 
-        except Exception as e:
-            st.error(f"❌ Error: {str(e)}")
+        st.markdown("### 📊 View Reference Diagram")
+        diagram_choice = st.selectbox("Choose a diagram", [
+            "QFL Provenance Diagram",
+            "Weathering Climate Diagram",
+            "Sandstone Classification Diagram"
+        ])
+        show_reference_diagram(diagram_choice)
