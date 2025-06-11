@@ -110,7 +110,7 @@ def qfl_and_mia_tool():
     - Weathering Climate
     - Sandstone Classification
 
-    **📅 Download** results after processing, including Q, F, L and MIA.
+    **📥 Download** results after processing, including Q, F, L and MIA.
     """)
 
     input_type = st.radio("Choose Input Type:", ["🔬 Full Mineral Data (Qm, Qp, K, P, etc.)", "📊 Direct Q-F-L Values"])
@@ -184,7 +184,15 @@ def qfl_and_mia_tool():
         st.markdown("### 🧠 Average MIA Interpretation")
         st.success(f"**Average MIA:** {average_mia:.2f}% → {interpret_mia(average_mia)}")
 
-        # 🔹 MIA Bar Chart with Visual Grade
+        # 🔸 Q, F, L Percent per Sample
+        st.markdown("### 📌 QFL Percentage Breakdown")
+        qfl_total = df[["q", "f", "l"]].sum(axis=1)
+        df["Q %"] = df["q"] / qfl_total * 100
+        df["F %"] = df["f"] / qfl_total * 100
+        df["L %"] = df["l"] / qfl_total * 100
+        st.dataframe(df[["Q %", "F %", "L %"]])
+
+        # 🔸 MIA Bar Chart with Visual Grade
         st.markdown("### 📊 MIA Values by Sample")
 
         def categorize_mia(val):
@@ -212,13 +220,21 @@ def qfl_and_mia_tool():
         ax.set_ylabel("MIA (%)")
         ax.set_xticks(df.index + 1)
         ax.set_ylim(0, 100)
+        for i, val in enumerate(df["mia"]):
+            ax.text(i + 1, val + 2, f"{val:.1f}%", ha='center', fontsize=8)
         st.pyplot(fig)
 
-        # 📅 Download
-        csv = df.to_csv(index=False).encode("utf-8")
-        st.download_button("📅 Download Results CSV", csv, file_name="qfl_mia_results.csv")
+        st.info("""
+        **MIA Chart Interpretation:**
+        - 🟥 Very Low: Immature sediments (likely arid)
+        - 🟧 Low: Transitional, active tectonics
+        - 🟦 Moderate: Recycled sources, semi-humid
+        - 🟩 High: Weathered, stable sources (humid)
+        """)
 
-        # 🔺 Triangle Plot
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button("📥 Download Results CSV", csv, file_name="qfl_mia_results.csv")
+
         st.markdown("### 🔺 QFL Diagram")
         plot_qfl_triangle(df)
 
