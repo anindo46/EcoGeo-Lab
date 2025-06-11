@@ -21,9 +21,7 @@ def inject_css():
     """, unsafe_allow_html=True)
 
 # Ensure this tool can be run standalone or imported into app.py
-if __name__ == "__main__":
-    from qfl_mia_tool import qfl_and_mia_tool
-    qfl_and_mia_tool()
+# Just define the tool function, and let app.py handle calling it.
 
 # All functions remain unchanged, and we will now define qfl_and_mia_tool to prevent ImportError
 
@@ -39,6 +37,10 @@ def standardize_columns(df):
             df = df.rename(columns={old: new})
     df = df.loc[:, ~df.columns.duplicated()]
     return df
+
+# Place all other function definitions here (calculate_qfl_components, calculate_mia, interpret_mia, etc.)
+
+# Final tool definition
 
 def qfl_and_mia_tool():
     inject_css()
@@ -69,3 +71,7 @@ def qfl_and_mia_tool():
 
     **📥 Download** results after processing, including Q, F, L and MIA.
     """)
+
+# Automatically run the tool if script is executed directly
+if __name__ == "__main__":
+    qfl_and_mia_tool()
