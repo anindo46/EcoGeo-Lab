@@ -76,11 +76,42 @@ def plot_qfl_triangle(data):
     st.pyplot(fig)
 
 def show_reference_diagram(selection):
-    diagram_paths = {
-        "QFL Provenance Diagram": "static/qfl_provenance.png",
-        "Weathering Climate Diagram": "static/weathering_diagram.png",
-        "Sandstone Classification Diagram": "static/sandstone_classification.png"
-    }
-    st.image(diagram_paths[selection], caption=selection, use_column_width=True)
+    # Generate placeholder diagrams dynamically using matplotlib
+    if selection == "QFL Provenance Diagram":
+        fig, ax = plt.subplots()
+        ax.set_title("QFL Provenance Diagram")
+        ax.plot([15, 50, 37], [13, 50, 25], 'k--')  # Placeholder lines
+        ax.fill_between([0, 15], 0, 100, color='#cce5df', label='Continental Block')
+        ax.fill_between([15, 50], 0, 50, color='#e6f2ff', label='Magmatic Arc')
+        ax.fill_between([15, 50], 50, 100, color='#eee', label='Recycled Orogen')
+        ax.set_xlim(0, 100)
+        ax.set_ylim(0, 100)
+        ax.legend()
+        st.pyplot(fig)
 
-# rest of the code remains unchanged
+    elif selection == "Weathering Climate Diagram":
+        fig, ax = plt.subplots()
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_title("Weathering Climate Diagram")
+        ax.set_xlabel("Q / (F + L)")
+        ax.set_ylabel("Qp / (F + L)")
+        ax.text(0.2, 0.01, 'ARID', fontsize=10)
+        ax.text(1.5, 0.03, 'SEMI ARID', fontsize=10)
+        ax.text(5, 0.1, 'SEMI HUMID', fontsize=10)
+        ax.text(20, 0.3, 'HUMID', fontsize=10)
+        ax.arrow(1, 0.01, 15, 0.2, head_width=0.01, head_length=2, fc='gray', ec='gray')
+        ax.set_xlim(0.1, 100)
+        ax.set_ylim(0.001, 1)
+        st.pyplot(fig)
+
+    elif selection == "Sandstone Classification Diagram":
+        fig, tax = ternary.figure(scale=100)
+        fig.set_size_inches(6, 6)
+        tax.boundary()
+        tax.gridlines(multiple=25, color="gray")
+        tax.set_title("Sandstone Classification Diagram", fontsize=15)
+        tax.left_axis_label("Feldspar", fontsize=12)
+        tax.right_axis_label("Lithics", fontsize=12)
+        tax.bottom_axis_label("Quartz", fontsize=12)
+        st.pyplot(fig)
