@@ -87,6 +87,37 @@ def qfl_and_mia_tool():
     inject_css()
     st.header("🔍 QFL & MIA Tool")
 
+
+
+
+    with st.expander("📘 How to Use This Tool"):
+    st.markdown("""
+    ### 🔹 Available Input Options:
+    - **Full Mineral Data**: Use this if you have raw component data like `Qm`, `Qp`, `K`/`Feldspar`, `P`/`Mica`, `Lm`, `Ls`, `Lv`.
+    - **Direct Q-F-L Values**: Use if you've already calculated or been given `Q`, `F`, `L`.
+
+    ### 🧪 Steps for Full Mineral Data:
+    1. Select "🔬 Full Mineral Data" from the top.
+    2. Upload CSV or enter manually.
+    3. Click **Next** to calculate Q, F, L and MIA.
+    4. View triangle plot, interpretation, and reference diagrams.
+
+    ### 📊 Steps for Direct Q-F-L Input:
+    1. Select "📊 Direct Q-F-L Values" from the top.
+    2. Upload or enter Q, F, L data directly.
+    3. Click **Next** to analyze.
+
+    ### 📁 Reference Diagrams:
+    Use the dropdown at the bottom to switch between:
+    - QFL Provenance
+    - Weathering Climate
+    - Sandstone Classification
+
+    **📥 Download** results after processing, including Q, F, L and MIA.
+    """)
+
+
+
     input_type = st.radio("Choose Input Type:", ["🔬 Full Mineral Data (Qm, Qp, K, P, etc.)", "📊 Direct Q-F-L Values"])
 
     df = None
