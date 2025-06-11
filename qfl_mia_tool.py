@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 import io
-import ternary  # Requires python-ternary package
+import ternary  # python-ternary must be installed
 
 def calculate_qfl_components(df):
     df['Q'] = df['Qm'] + df['Qp']
@@ -31,55 +31,67 @@ def plot_qfl_triangle(data):
             q = row['Q'] / total * 100
             f = row['F'] / total * 100
             l = row['L'] / total * 100
-            tax.scatter([(q, f, l)], marker='o', color='blue', label='Sample', s=30)
+            tax.scatter([(q, f, l)], marker='o', color='blue', s=30)
 
     tax.ticks(axis='lbr', multiple=10, linewidth=1)
     tax.clear_matplotlib_ticks()
-    tax.legend()
     st.pyplot(fig)
 
 def qfl_and_mia_tool():
     st.header("🔍 QFL & MIA Tool")
-    
+
     with st.expander("📘 How to Use"):
         st.markdown("""
         1. Upload a CSV or enter data manually with columns: `Qm`, `Qp`, `K`, `P`, `Lm`, `Ls`, `Lv`
-        2. Click **Next** to calculate `Q`, `F`, `L` and `MIA`
-        3. View the QFL triangle and download results
+        2. Do not include a header row inside the data body.
+        3. Click **Next** to calculate Q, F, L and MIA index.
+        4. View results, plot and download CSV.
         """)
-        st.markdown("📂 Sample Format:")
-        st.code("Qm, Qp, K, P, Lm, Ls, Lv\n10, 5, 3, 2, 4, 1, 2", language="csv")
+        st.code("Qm, Qp, K, P, Lm, Ls, Lv\n48.4, 7.8, 7.8, 5.4, 7.6, 8, 0", language="csv")
 
     input_mode = st.radio("Choose Input Method", ["Upload CSV", "Manual Entry"])
+
+    df = None
 
     if input_mode == "Upload CSV":
         uploaded_file = st.file_uploader("Upload CSV File", type=['csv'])
         if uploaded_file:
             df = pd.read_csv(uploaded_file)
             st.write("### Uploaded Data", df)
+
     else:
         sample_data = pd.DataFrame({
-            "Qm": [10], "Qp": [5], "K": [3], "P": [2],
-            "Lm": [4], "Ls": [1], "Lv": [2]
+            "Qm": [48.4, 51, 50.8, 48.4, 32],
+            "Qp": [7.8, 9.8, 6.2, 10.2, 8],
+            "K": [7.8, 5.2, 2.2, 4.2, 7.2],
+            "P": [5.4, 2.4, 3.4, 3.4, 2.6],
+            "Lm": [7.6, 6.4, 5.2, 5.2, 12],
+            "Ls": [8, 7.2, 6, 3.4, 10.2],
+            "Lv": [0, 0, 0, 0, 0]
         })
-        df = st.data_editor(sample_data, use_container_width=True, num_rows="dynamic", key="manual_editor")
+        df = st.data_editor(sample_data, use_container_width=True, num_rows="dynamic", key="manual_table")
 
-    if 'df' in locals() and st.button("Next"):
+    if df is not None and st.button("Next"):
         try:
-            df = df.astype(float)
+            # Remove any accidental header rows (e.g., Qm as a string inside the data)
+            df = df[df['Qm'].apply(lambda x: str(x).replace('.', '', 1).isdigit())]
+
+            # Convert all relevant columns to float
+            cols_needed = ["Qm", "Qp", "K", "P", "Lm", "Ls", "Lv"]
+            df[cols_needed] = df[cols_needed].astype(float)
+
             df = calculate_qfl_components(df)
             df = calculate_mia(df)
 
             st.success("✅ Calculation Complete")
 
-            st.write("### 📊 Result Table", df)
+            st.write("### 📊 Result Table")
+            st.dataframe(df, use_container_width=True)
 
-            # Download CSV
-            csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button("📥 Download CSV", csv, "qfl_mia_results.csv", "text/csv")
+            csv = df.to_csv(index=False).encode("utf-8")
+            st.download_button("📥 Download Result CSV", csv, "qfl_mia_result.csv", "text/csv")
 
-            # QFL Triangle
-            st.write("### 🔺 QFL Triangle")
+            st.write("### 🔺 QFL Triangle Plot")
             plot_qfl_triangle(df)
 
         except Exception as e:
