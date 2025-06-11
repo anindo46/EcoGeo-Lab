@@ -20,11 +20,6 @@ def inject_css():
         </style>
     """, unsafe_allow_html=True)
 
-# Ensure this tool can be run standalone or imported into app.py
-# Just define the tool function, and let app.py handle calling it.
-
-# All functions remain unchanged, and we will now define qfl_and_mia_tool to prevent ImportError
-
 def standardize_columns(df):
     df.columns = [c.strip().lower() for c in df.columns]
     rename_map = {
@@ -81,15 +76,12 @@ def plot_qfl_triangle(data):
     st.pyplot(fig)
 
 def show_reference_diagram(selection):
-    fig, ax = plt.subplots()
-    ax.set_title(selection)
-    ax.plot([0, 50, 100], [0, 100, 0], linestyle='--', label=selection)
-    ax.set_xlim(0, 100)
-    ax.set_ylim(0, 100)
-    ax.legend()
-    st.pyplot(fig)
-
-# Final tool definition
+    diagram_paths = {
+        "QFL Provenance Diagram": "static/qfl_provenance.png",
+        "Weathering Climate Diagram": "static/weathering_diagram.png",
+        "Sandstone Classification Diagram": "static/sandstone_classification.png"
+    }
+    st.image(diagram_paths[selection], caption=selection, use_column_width=True)
 
 def qfl_and_mia_tool():
     inject_css()
@@ -121,6 +113,135 @@ def qfl_and_mia_tool():
     **📥 Download** results after processing, including Q, F, L and MIA.
     """)
 
-# Automatically run the tool if script is executed directly
-if __name__ == "__main__":
-    qfl_and_mia_tool()
+    input_type = st.radio("Choose Input Type:", ["🔬 Full Mineral Data (Qm, Qp, K, P, etc.)", "📊 Direct Q-F-L Values"])
+
+    df = None
+    if input_type == "🔬 Full Mineral Data (Qm, Qp, K, P, etc.)":
+        st.subheader("Full Component Input")
+        input_mode = st.radio("Choose Method", ["Upload CSV", "Manual Entry"])
+        if input_mode == "Upload CSV":
+            uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+            if uploaded_file:
+                df = pd.read_csv(uploaded_file)
+                df = standardize_columns(df)
+                st.dataframe(df)
+        else:
+            sample_data = pd.DataFrame({
+                "Qm": [48.4], "Qp": [7.8], "Feldspar": [7.8],
+                "Mica": [5.4], "Lm": [7.6], "Ls": [8], "Lithic Fragment": [0]
+            })
+            df = st.data_editor(sample_data, num_rows="dynamic", use_container_width=True)
+            df = standardize_columns(df)
+
+        if df is not None and st.button("Next"):
+            try:
+                expected = ["qm", "qp", "k", "p", "lm", "ls", "lv"]
+                df[expected] = df[expected].apply(pd.to_numeric, errors="coerce")
+                df.dropna(subset=expected, inplace=True)
+                df = calculate_qfl_components(df)
+                df = calculate_mia(df)
+            except Exception as e:
+                st.error(f"Error: {e}")
+                return
+
+    else:
+        st.subheader("Direct Q-F-L Input")
+        input_mode = st.radio("Choose Method", ["Upload CSV", "Manual Entry"])
+        if input_mode == "Upload CSV":
+            uploaded_file = st.file_uploader("Upload CSV with Q, F, L", type=["csv"])
+            if uploaded_file:
+                df = pd.read_csv(uploaded_file)
+                df.columns = [c.strip().lower() for c in df.columns]
+                st.dataframe(df)
+        else:
+            sample_data = pd.DataFrame({"Q": [60], "F": [30], "L": [10]})
+            df = st.data_editor(sample_data, num_rows="dynamic", use_container_width=True)
+
+        if df is not None and st.button("Next"):
+            try:
+                df.columns = [c.strip().lower() for c in df.columns]
+                df = df.rename(columns={"q": "q", "f": "f", "l": "l"})
+                df = df[["q", "f", "l"]].apply(pd.to_numeric, errors="coerce")
+                df.dropna(inplace=True)
+                df = calculate_mia(df)
+            except Exception as e:
+                st.error(f"Error: {e}")
+                return
+
+    if df is not None and "q" in df.columns and "f" in df.columns and "l" in df.columns:
+        st.success("✅ QFL & MIA Calculated")
+        st.dataframe(df, use_container_width=True)
+
+        # 🔹 Total/Average Summary
+        total_q = df["q"].sum()
+        total_f = df["f"].sum()
+        total_l = df["l"].sum()
+        average_mia = df["mia"].mean()
+
+        st.markdown("### 📊 Total QFL Summary")
+        st.info(f"**Total Quartz (Q):** {total_q:.2f} &nbsp;&nbsp; | &nbsp;&nbsp; **Total Feldspar (F):** {total_f:.2f} &nbsp;&nbsp; | &nbsp;&nbsp; **Total Lithics (L):** {total_l:.2f}")
+
+        st.markdown("### 🧠 Average MIA Interpretation")
+        st.success(f"**Average MIA:** {average_mia:.2f}% → {interpret_mia(average_mia)}")
+
+        # 🔸 Q, F, L Percent per Sample
+        st.markdown("### 📌 QFL Percentage Breakdown")
+        qfl_total = df[["q", "f", "l"]].sum(axis=1)
+        df["Q %"] = df["q"] / qfl_total * 100
+        df["F %"] = df["f"] / qfl_total * 100
+        df["L %"] = df["l"] / qfl_total * 100
+        st.dataframe(df[["Q %", "F %", "L %"]])
+
+        # 🔸 MIA Bar Chart with Visual Grade
+        st.markdown("### 📊 MIA Values by Sample")
+
+        def categorize_mia(val):
+            if val > 75:
+                return "High"
+            elif val > 50:
+                return "Moderate"
+            elif val > 25:
+                return "Low"
+            else:
+                return "Very Low"
+
+        df["category"] = df["mia"].apply(categorize_mia)
+        colors = df["category"].map({
+            "Very Low": "#ff6666",
+            "Low": "#ffcc66",
+            "Moderate": "#66ccff",
+            "High": "#66ff66"
+        })
+
+        fig, ax = plt.subplots()
+        ax.bar(df.index + 1, df["mia"], color=colors)
+        ax.set_title("MIA Index by Sample")
+        ax.set_xlabel("Sample")
+        ax.set_ylabel("MIA (%)")
+        ax.set_xticks(df.index + 1)
+        ax.set_ylim(0, 100)
+        for i, val in enumerate(df["mia"]):
+            ax.text(i + 1, val + 2, f"{val:.1f}%", ha='center', fontsize=8)
+        st.pyplot(fig)
+
+        st.info("""
+        **MIA Chart Interpretation:**
+        - 🟥 Very Low: Immature sediments (likely arid)
+        - 🟧 Low: Transitional, active tectonics
+        - 🟦 Moderate: Recycled sources, semi-humid
+        - 🟩 High: Weathered, stable sources (humid)
+        """)
+
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button("📥 Download Results CSV", csv, file_name="qfl_mia_results.csv")
+
+        st.markdown("### 🔺 QFL Diagram")
+        plot_qfl_triangle(df)
+
+        st.markdown("### 📊 View Reference Diagram")
+        diagram_choice = st.selectbox("Choose a diagram", [
+            "QFL Provenance Diagram",
+            "Weathering Climate Diagram",
+            "Sandstone Classification Diagram"
+        ])
+        show_reference_diagram(diagram_choice)
