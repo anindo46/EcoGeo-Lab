@@ -91,7 +91,7 @@ def qfl_and_mia_tool():
 
 
     with st.expander("📘 How to Use This Tool"):
-    st.markdown("""
+        st.markdown("""
     ### 🔹 Available Input Options:
     - **Full Mineral Data**: Use this if you have raw component data like `Qm`, `Qp`, `K`/`Feldspar`, `P`/`Mica`, `Lm`, `Ls`, `Lv`.
     - **Direct Q-F-L Values**: Use if you've already calculated or been given `Q`, `F`, `L`.
